@@ -316,23 +316,25 @@ const MissaoDia = ({ isVisitor = false }: { isVisitor?: boolean }) => {
         <Separator />
 
         {/* BOTÕES FINAIS */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <Button 
             onClick={() => setShowGraph(true)}
             variant="outline"
-            className="flex-1"
+            className="flex-1 h-12 text-base"
             disabled={progresso < 80}
           >
             <TrendingUp className="mr-2 h-4 w-4" />
-            Ver minha evolução
+            <span className="hidden sm:inline">Ver minha evolução</span>
+            <span className="sm:hidden">Evolução</span>
           </Button>
           <Button 
             onClick={concluirMissao}
-            className="flex-1 bg-gradient-to-r from-primary to-accent"
+            className="flex-1 h-12 text-base bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg"
             disabled={progresso < 100}
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
-            Concluir Missão
+            <span className="hidden sm:inline">Concluir Missão</span>
+            <span className="sm:hidden">Concluir</span>
           </Button>
         </div>
       </CardContent>

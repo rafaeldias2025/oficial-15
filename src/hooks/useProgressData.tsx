@@ -29,14 +29,30 @@ export const useProgressData = () => {
       setData(prev => ({ ...prev, loading: true, error: null }));
 
       // Buscar profile do usuário
-      const { data: profile } = await supabase
+      let { data: profile } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (!profile) {
-        throw new Error('Profile não encontrado');
+        console.warn('Profile não encontrado, criando perfil padrão');
+        // Criar perfil padrão temporário
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .insert([{
+            user_id: user.id,
+            full_name: user.email?.split('@')[0] || 'Usuário',
+            email: user.email || ''
+          }])
+          .select()
+          .single();
+        
+        if (newProfile) {
+          profile = newProfile;
+        } else {
+          throw new Error('Não foi possível criar o perfil');
+        }
       }
 
       // Buscar dados físicos atuais

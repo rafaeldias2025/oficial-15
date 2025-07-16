@@ -61,8 +61,22 @@ export const useChallenges = () => {
         return;
       }
 
-      const profile = await supabase.from('profiles').select('id').eq('user_id', user.id).single();
-      if (profile.error) throw profile.error;
+      let { data: profile, error: profileError } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
+      if (profileError) throw profileError;
+      if (!profile) {
+        console.warn('Profile não encontrado, criando perfil padrão');
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .insert([{
+            user_id: user.id,
+            full_name: user.email?.split('@')[0] || 'Usuário',
+            email: user.email || ''
+          }])
+          .select('id')
+          .single();
+        if (!newProfile) throw new Error('Não foi possível criar o perfil');
+        profile = newProfile;
+      }
 
       const { data, error } = await supabase
         .from('user_challenges')
@@ -70,7 +84,7 @@ export const useChallenges = () => {
           *,
           challenges(*)
         `)
-        .eq('user_id', profile.data.id)
+        .eq('user_id', profile.id)
         .order('started_at', { ascending: false });
 
       if (error) throw error;
@@ -94,13 +108,27 @@ export const useChallenges = () => {
         return;
       }
 
-      const profile = await supabase.from('profiles').select('id').eq('user_id', user.id).single();
-      if (profile.error) throw profile.error;
+      let { data: profile, error: profileError } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
+      if (profileError) throw profileError;
+      if (!profile) {
+        console.warn('Profile não encontrado, criando perfil padrão');
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .insert([{
+            user_id: user.id,
+            full_name: user.email?.split('@')[0] || 'Usuário',
+            email: user.email || ''
+          }])
+          .select('id')
+          .single();
+        if (!newProfile) throw new Error('Não foi possível criar o perfil');
+        profile = newProfile;
+      }
 
       const { data, error } = await supabase
         .from('user_challenges')
         .insert([{
-          user_id: profile.data.id,
+          user_id: profile.id,
           challenge_id: challengeId,
           progress: 0,
           target_value: targetValue,
@@ -149,10 +177,25 @@ export const useChallenges = () => {
 
       if (isCompleted) {
         // Adicionar pontos ao usuário
-        const profile = await supabase.from('profiles').select('id').eq('user_id', user!.id).single();
-        if (profile.data) {
+        let { data: profile, error: profileError } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
+        if (profileError) throw profileError;
+        if (!profile) {
+          console.warn('Profile não encontrado, criando perfil padrão');
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .insert([{
+              user_id: user!.id,
+              full_name: user!.email?.split('@')[0] || 'Usuário',
+              email: user!.email || ''
+            }])
+            .select('id')
+            .single();
+          if (!newProfile) throw new Error('Não foi possível criar o perfil');
+          profile = newProfile;
+        }
+        if (profile) {
           await supabase.rpc('update_user_points', {
-            p_user_id: profile.data.id,
+            p_user_id: profile.id,
             p_points: userChallenge.challenge?.points || 0,
             p_activity_type: 'challenge_completed'
           });

@@ -1,7 +1,8 @@
 
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Menu, X, LogOut } from "lucide-react";
 import ThemeToggle from "@/components/netflix/ThemeToggle";
 import { DadosFisicosForm } from "@/components/DadosFisicosForm";
 import AvaliacaoSemanal from "@/components/AvaliacaoSemanal";
@@ -19,12 +20,12 @@ import { WelcomeHeader } from "@/components/WelcomeHeader";
 import { ClientSessions } from "@/components/sessions/ClientSessions";
 import { RequiredDataModal } from "@/components/RequiredDataModal";
 import { PaidCourses } from "@/components/courses/PaidCourses";
+import { AdvancedHealthDashboard } from "@/components/dashboard/AdvancedHealthDashboard";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
-  LogOut, 
   Home,
   Trophy,
   Calendar,
@@ -34,7 +35,8 @@ import {
   Settings,
   BarChart3,
   Scale,
-  GraduationCap
+  GraduationCap,
+  User
 } from "lucide-react";
 
 // Dados mock para ranking
@@ -48,9 +50,9 @@ const Dashboard = () => {
   const { user, signOut } = useAuth();
   const [activeSection, setActiveSection] = useState('inicio');
   const [rankingTimeFilter, setRankingTimeFilter] = useState<'week' | 'month' | 'all'>('week');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { id: 'perfil', label: 'Perfil', icon: UserProfileMenu, isComponent: true },
     { id: 'inicio', label: 'Início', icon: Home },
     { id: 'cursos-pagos', label: 'Cursos Pagos', icon: GraduationCap },
     { id: 'sessoes', label: 'Sessões', icon: FileText },
@@ -61,6 +63,7 @@ const Dashboard = () => {
     { id: 'diario', label: 'Diário de Saúde', icon: FileText },
     { id: 'teste-sabotadores', label: 'Teste de Sabotadores', icon: Settings },
     { id: 'meu-progresso', label: 'Meu Progresso', icon: BarChart3 },
+    { id: 'analise-avancada', label: 'Análise Avançada', icon: BarChart3 },
   ];
 
   const renderContent = () => {
@@ -71,8 +74,6 @@ const Dashboard = () => {
         return <PaidCourses />;
       case 'sessoes':
         return <ClientSessions />;
-      case 'perfil':
-        return <MissaoDia isVisitor={false} />; // Perfil não é seção, volta para início
       case 'ranking':
         return (
           <RealUserRanking 
@@ -97,83 +98,144 @@ const Dashboard = () => {
             <ProgressCharts />
           </div>
         );
+      case 'analise-avancada':
+        return <AdvancedHealthDashboard />;
       default:
         return <MissaoDia isVisitor={false} />;
     }
   };
 
-  return (
-    <div className="min-h-screen bg-netflix-dark">
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-netflix-card border-r border-netflix-border min-h-screen">
-          <div className="p-6">
-            <Link 
-              to="/" 
-              className="inline-flex items-center gap-2 text-instituto-orange hover:opacity-90 transition-opacity mb-6"
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="hidden sm:inline">Voltar</span>
+          </Link>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      </div>
+
+      {/* User Profile */}
+      <div className="p-4 border-b border-white/10">
+        <UserProfileMenu />
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-4 space-y-2">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <motion.button
+              key={item.id}
+              onClick={() => {
+                setActiveSection(item.id);
+                setSidebarOpen(false);
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+                activeSection === item.id 
+                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg' 
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+              }`}
             >
-              <ArrowLeft className="w-5 h-5" />
-              Voltar ao início
-            </Link>
-            
-            <nav className="space-y-2">
-              {menuItems.map((item) => {
-                if (item.isComponent) {
-                  // Para o perfil, renderiza o componente diretamente
-                  return (
-                    <div key={item.id}>
-                      <div className="px-3 py-2">
-                        <UserProfileMenu />
-                      </div>
-                      <div className="mx-3 my-2 border-t border-netflix-border" />
-                    </div>
-                  );
-                }
-                
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveSection(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                      activeSection === item.id 
-                        ? 'bg-instituto-orange text-white' 
-                        : 'text-netflix-text hover:bg-netflix-hover'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+              <Icon className="w-5 h-5" />
+              <span className="font-medium">{item.label}</span>
+            </motion.button>
+          );
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-white/10">
+        <Button
+          onClick={signOut}
+          variant="ghost"
+          className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
+        >
+          <LogOut className="w-5 h-5 mr-3" />
+          Sair
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Mobile Header */}
+      <div className="lg:hidden bg-white/5 backdrop-blur-sm border-b border-white/10 p-4">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            <Menu className="w-6 h-6 text-white" />
+          </button>
+          <h1 className="text-lg font-semibold text-white">
+            {menuItems.find(item => item.id === activeSection)?.label || 'Dashboard'}
+          </h1>
+          <div className="w-10" /> {/* Spacer */}
+        </div>
+      </div>
+
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:flex lg:w-80 lg:flex-col bg-white/5 backdrop-blur-sm border-r border-white/10">
+          <SidebarContent />
         </div>
 
-        {/* Main content */}
-        <div className="flex-1">
-          {/* Header */}
-          <div className="bg-netflix-card border-b border-netflix-border p-6">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-netflix-text">
-                {menuItems.find(item => item.id === activeSection)?.label || 'Dashboard'}
-              </h1>
-              <div className="flex items-center gap-4">
-                <ThemeToggle />
-              </div>
-            </div>
-          </div>
+        {/* Mobile Sidebar */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                onClick={() => setSidebarOpen(false)}
+              />
+              <motion.div
+                initial={{ x: -280 }}
+                animate={{ x: 0 }}
+                exit={{ x: -280 }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="lg:hidden fixed left-0 top-0 bottom-0 w-80 bg-slate-900/95 backdrop-blur-sm border-r border-white/10 z-50"
+              >
+                <SidebarContent />
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
-          {/* Content */}
-          <div className="p-6 space-y-6">
-            {/* Mensagem de boas-vindas dinâmica */}
-            <WelcomeHeader />
-            {renderContent()}
+        {/* Main Content */}
+        <div className="flex-1 min-h-screen">
+          <div className="p-4 sm:p-6 lg:p-8">
+            <motion.div
+              key={activeSection}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="w-full"
+            >
+              {renderContent()}
+            </motion.div>
           </div>
         </div>
       </div>
-      
-      {/* Modal para dados obrigatórios */}
+
+      {/* Required Data Modal */}
       <RequiredDataModal />
     </div>
   );

@@ -30,7 +30,8 @@ import {
   Brain,
   Utensils,
   Trophy,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -80,6 +81,8 @@ const MinhasMetas: React.FC<MinhasMetasProps> = ({ userType }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingMeta, setEditingMeta] = useState<Meta | null>(null);
   const [showDateWarning, setShowDateWarning] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     tipo: '',
@@ -176,7 +179,7 @@ const MinhasMetas: React.FC<MinhasMetasProps> = ({ userType }) => {
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.nome || !formData.tipo) return;
 
     // Validar datas
@@ -184,26 +187,37 @@ const MinhasMetas: React.FC<MinhasMetasProps> = ({ userType }) => {
       return; // Mostra aviso mas não bloqueia
     }
 
-    const novaMeta: Meta = {
-      id: editingMeta ? editingMeta.id : Date.now().toString(),
-      nome: formData.nome,
-      tipo: formData.tipo as Meta['tipo'],
-      dataInicio: formData.dataInicio,
-      previsaoConclusao: formData.previsaoConclusao,
-      notas: formData.notas,
-      progresso: editingMeta ? editingMeta.progresso : 0,
-      tipoOutro: formData.tipo === 'outro' ? formData.tipoOutro : undefined,
-      lembretesSemana: formData.lembretesSemana,
-      planoAutomatico: formData.planoAutomatico
-    };
+    try {
+      setIsSubmitting(true);
 
-    if (editingMeta) {
-      setMetas(metas.map(m => m.id === editingMeta.id ? novaMeta : m));
-    } else {
-      setMetas([...metas, novaMeta]);
+      const novaMeta: Meta = {
+        id: editingMeta ? editingMeta.id : Date.now().toString(),
+        nome: formData.nome,
+        tipo: formData.tipo as Meta['tipo'],
+        dataInicio: formData.dataInicio,
+        previsaoConclusao: formData.previsaoConclusao,
+        notas: formData.notas,
+        progresso: editingMeta ? editingMeta.progresso : 0,
+        tipoOutro: formData.tipo === 'outro' ? formData.tipoOutro : undefined,
+        lembretesSemana: formData.lembretesSemana,
+        planoAutomatico: formData.planoAutomatico
+      };
+
+      // Simular salvamento
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      if (editingMeta) {
+        setMetas(metas.map(m => m.id === editingMeta.id ? novaMeta : m));
+      } else {
+        setMetas([...metas, novaMeta]);
+      }
+
+      resetForm();
+    } catch (error) {
+      console.error('Erro ao salvar meta:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    resetForm();
   };
 
   const resetForm = () => {
@@ -362,15 +376,28 @@ const MinhasMetas: React.FC<MinhasMetasProps> = ({ userType }) => {
                   <div className="flex gap-2 pt-4">
                     <Button 
                       onClick={handleSubmit}
+                      disabled={isSubmitting}
                       className="flex-1 bg-instituto-orange hover:bg-instituto-orange-hover text-white"
                     >
-                      Criar Meta
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Criando...
+                        </>
+                      ) : (
+                        'Criar Meta'
+                      )}
                     </Button>
                     <Button 
                       variant="outline" 
-                      onClick={resetForm}
+                      onClick={() => {
+                        resetForm();
+                        setIsCreating(false);
+                      }}
+                      disabled={isSubmitting}
                       className="border-netflix-border text-netflix-text hover:bg-netflix-hover"
                     >
+                      <X className="h-4 w-4 mr-2" />
                       Cancelar
                     </Button>
                   </div>

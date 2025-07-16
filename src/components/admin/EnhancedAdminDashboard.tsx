@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { AdminProtectedRoute } from '@/components/admin/AdminProtectedRoute';
 import { UsersList } from '@/components/admin/UsersList';
 import { CompleteTrendTrackWeightSystem } from '@/components/admin/CompleteTrendTrackWeightSystem';
@@ -16,347 +19,342 @@ import { CourseManagement } from '@/components/admin/CourseManagement';
 import { UserSelector } from '@/components/admin/UserSelector';
 import { IndividualClientDashboard } from '@/components/admin/IndividualClientDashboard';
 import { 
-  Users, 
-  Video, 
-  BarChart3, 
-  Settings, 
-  Bell,
-  Crown,
-  UserPlus,
-  Calendar,
-  Target,
-  TrendingUp,
-  Shield,
-  Eye,
-  Database,
-  GraduationCap,
-  UserSearch
+  Users, Video, BarChart3, Settings, Bell, Crown, UserPlus, Calendar, 
+  Target, TrendingUp, Shield, Eye, Database, GraduationCap, UserSearch,
+  Activity, CheckCircle, AlertCircle, ChevronRight, Sparkles, Home,
+  Clock, UserX, Heart, Coffee, Zap, Filter, Download, RefreshCw,
+  ChevronDown, LogOut, BookOpen, FileText
 } from 'lucide-react';
+import { ButtonLoading } from '@/components/ui/loading';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useNavigate } from 'react-router-dom';
+import { UserManagement } from './UserManagement';
+import { SessionManagement } from './SessionManagement';
+import { DataVisualization } from './DataVisualization';
+import { SystemSettings } from './SystemSettings';
+import { CourseManagement } from './CourseManagement';
 
 export const EnhancedAdminDashboard: React.FC = () => {
-  console.log('EnhancedAdminDashboard component rendering');
-  
-  const [notifications, setNotifications] = useState(3);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [selectedTab, setSelectedTab] = useState('dashboard');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const stats = [
-    {
-      title: "Clientes Ativos",
-      value: "47",
-      change: "+12%",
-      trend: "up",
-      icon: Users,
-      color: "instituto-orange"
-    },
-    {
-      title: "Sessões Enviadas",
-      value: "124",
-      change: "+8%",
-      trend: "up",
-      icon: Video,
-      color: "instituto-purple"
-    },
-    {
-      title: "Taxa de Conclusão",
-      value: "89%",
-      change: "+5%",
-      trend: "up",
-      icon: Target,
-      color: "instituto-green"
-    },
-    {
-      title: "Engajamento Semanal",
-      value: "94%",
-      change: "+15%",
-      trend: "up",
-      icon: TrendingUp,
-      color: "instituto-lilac"
+  // Atualizar relógio
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Função de logout melhorada
+  const handleSignOut = async () => {
+    try {
+      setIsSigningOut(true);
+      
+      // Feedback visual imediato
+      toast({
+        title: "🔐 Encerrando sessão...",
+        description: "Saindo do painel administrativo com segurança"
+      });
+
+      // Esperar um pouco para UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Fazer logout
+      await signOut();
+      
+      // Limpar dados locais
+      localStorage.removeItem('adminAuth');
+      localStorage.removeItem('userType');
+      localStorage.removeItem('admin_session');
+      
+      toast({
+        title: "✅ Logout realizado",
+        description: "Sessão administrativa encerrada com sucesso"
+      });
+      
+      // Redirecionar para login
+      navigate('/auth');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      toast({
+        title: "❌ Erro no logout",
+        description: "Houve um problema ao encerrar a sessão. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSigningOut(false);
     }
-  ];
+  };
+
+  // Função para navegar
+  const navigateToPublic = () => {
+    try {
+      toast({
+        title: "🌐 Redirecionando...",
+        description: "Indo para a área pública"
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Erro na navegação:', error);
+      toast({
+        title: "❌ Erro na navegação",
+        description: "Não foi possível navegar. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Menu do usuário
+  const UserMenu = () => (
+    <DropdownMenu open={showUserMenu} onOpenChange={setShowUserMenu}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={user?.user_metadata?.avatar_url} />
+              <AvatarFallback className="bg-purple-500 text-white text-xs">
+                {user?.user_metadata?.full_name?.split(' ').map(n => n[0]).join('') || 'AD'}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium">
+              {user?.user_metadata?.full_name || 'Admin'}
+            </span>
+            <ChevronDown className="h-4 w-4" />
+          </div>
+        </Button>
+      </DropdownMenuTrigger>
+      
+      <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-sm border-white/20">
+        <DropdownMenuItem 
+          onClick={navigateToPublic}
+          className="cursor-pointer hover:bg-purple-50"
+        >
+          <Home className="mr-2 h-4 w-4 text-purple-600" />
+          <span className="text-purple-600">Ir para Área Pública</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem 
+          onClick={() => {
+            toast({
+              title: "🔧 Em desenvolvimento",
+              description: "Configurações estarão disponíveis em breve"
+            });
+          }}
+          className="cursor-pointer hover:bg-purple-50"
+        >
+          <Settings className="mr-2 h-4 w-4 text-purple-600" />
+          <span className="text-purple-600">Configurações</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuItem 
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+          className="cursor-pointer hover:bg-red-50 focus:bg-red-50"
+        >
+          <div className="flex items-center">
+            {isSigningOut ? (
+              <ButtonLoading size="sm" className="mr-2" />
+            ) : (
+              <LogOut className="mr-2 h-4 w-4 text-red-600" />
+            )}
+            <span className="text-red-600">
+              {isSigningOut ? 'Saindo...' : 'Sair do Sistema'}
+            </span>
+          </div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
-    <AdminProtectedRoute>
-      <div className="min-h-screen bg-netflix-dark p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-netflix-text flex items-center gap-3">
-                <Crown className="h-8 w-8 text-instituto-gold animate-glow" />
-                Painel Administrativo Avançado
-              </h1>
-              <p className="text-netflix-text-muted text-lg">
-                {selectedUserId ? 'Dashboard Individual do Cliente' : 'Gerencie e monitore seus clientes com análises detalhadas'}
-              </p>
-            </div>
-            
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      {/* Header aprimorado */}
+      <div className="bg-black/30 backdrop-blur-sm border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo e título */}
             <div className="flex items-center gap-4">
-              <Button variant="outline" className="relative border-netflix-border text-netflix-text hover:bg-netflix-hover">
-                <Bell className="h-4 w-4" />
-                {notifications > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-instituto-orange text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-in">
-                    {notifications}
-                  </span>
-                )}
-              </Button>
-              <Button variant="outline" className="border-netflix-border text-netflix-text hover:bg-netflix-hover">
-                <Settings className="h-4 w-4 mr-2" />
-                Configurações
-              </Button>
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <Crown className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">
+                  Instituto dos Sonhos
+                </h1>
+                <p className="text-sm text-white/60">
+                  Painel Administrativo
+                </p>
+              </div>
+            </div>
+
+            {/* Relógio e informações */}
+            <div className="flex items-center gap-6">
+              <div className="text-right">
+                <div className="text-sm font-medium text-white">
+                  {currentTime.toLocaleTimeString('pt-BR')}
+                </div>
+                <div className="text-xs text-white/60">
+                  {currentTime.toLocaleDateString('pt-BR', { 
+                    weekday: 'long', 
+                    day: 'numeric', 
+                    month: 'long' 
+                  })}
+                </div>
+              </div>
+              
+              <div className="w-px h-8 bg-white/20" />
+              
+              <UserMenu />
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
-              <Card 
-                key={stat.title} 
-                className="bg-netflix-card border-netflix-border hover:border-instituto-orange/50 transition-all duration-300 floating-card animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
+      {/* Navegação por tabs */}
+      <div className="bg-black/20 backdrop-blur-sm border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex space-x-8 overflow-x-auto">
+            {[
+              { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+              { id: 'users', label: 'Usuários', icon: Users },
+              { id: 'courses', label: 'Cursos', icon: BookOpen },
+              { id: 'sessions', label: 'Sessões', icon: Calendar },
+              { id: 'reports', label: 'Relatórios', icon: FileText },
+              { id: 'settings', label: 'Sistema', icon: Settings }
+            ].map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setSelectedTab(id)}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 border-b-2 ${
+                  selectedTab === id
+                    ? 'border-purple-400 text-white bg-white/10'
+                    : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                }`}
               >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      {/* Conteúdo principal */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {selectedTab === 'dashboard' && (
+          <div className="space-y-6">
+            {/* Dashboard content */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-netflix-text-muted text-sm font-medium">
-                        {stat.title}
-                      </p>
-                      <p className="text-3xl font-bold text-netflix-text">
-                        {stat.value}
-                      </p>
-                      <p className={`text-sm font-medium flex items-center gap-1 mt-1 text-instituto-green`}>
-                        <TrendingUp className="h-3 w-3" />
-                        {stat.change}
-                      </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                      <Users className="h-6 w-6 text-blue-400" />
                     </div>
-                    <div className={`p-3 rounded-lg bg-${stat.color}/10 pulse-glow`}>
-                      <stat.icon className={`h-6 w-6 text-${stat.color}`} />
+                    <div>
+                      <p className="text-2xl font-bold text-white">47</p>
+                      <p className="text-sm text-white/60">Clientes Ativos</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              
+              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                      <Calendar className="h-6 w-6 text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">124</p>
+                      <p className="text-sm text-white/60">Sessões Hoje</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
+                      <TrendingUp className="h-6 w-6 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">89%</p>
+                      <p className="text-sm text-white/60">Taxa de Conclusão</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center">
+                      <Activity className="h-6 w-6 text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">94%</p>
+                      <p className="text-sm text-white/60">Engajamento</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Ações rápidas */}
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white">Ações Rápidas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button 
+                    onClick={() => setSelectedTab('users')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white h-12"
+                  >
+                    <UserPlus className="h-5 w-5 mr-2" />
+                    Gerenciar Usuários
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setSelectedTab('sessions')}
+                    className="bg-green-600 hover:bg-green-700 text-white h-12"
+                  >
+                    <Calendar className="h-5 w-5 mr-2" />
+                    Criar Sessão
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setSelectedTab('reports')}
+                    className="bg-purple-600 hover:bg-purple-700 text-white h-12"
+                  >
+                    <FileText className="h-5 w-5 mr-2" />
+                    Ver Relatórios
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
+        )}
 
-        {/* Main Content */}
-        <Tabs defaultValue="clientes" className="space-y-6">
-          <TabsList className="bg-netflix-card border border-netflix-border grid grid-cols-2 lg:grid-cols-5 gap-1">
-            {/* 👥 Análise de Clientes */}
-            <TabsTrigger 
-              value="clientes" 
-              className="data-[state=active]:bg-instituto-orange data-[state=active]:text-white text-netflix-text transition-all duration-200 hover:bg-instituto-orange/20"
-            >
-              <UserSearch className="h-4 w-4 mr-2" />
-              👥 Clientes
-            </TabsTrigger>
-            
-            {/* 👥 Gestão de Usuários */}
-            <TabsTrigger 
-              value="usuarios" 
-              className="data-[state=active]:bg-instituto-purple data-[state=active]:text-white text-netflix-text transition-all duration-200 hover:bg-instituto-purple/20"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              👥 Usuários
-            </TabsTrigger>
-            
-            {/* 📚 Cursos Pagos */}
-            <TabsTrigger 
-              value="cursos" 
-              className="data-[state=active]:bg-instituto-green data-[state=active]:text-white text-netflix-text transition-all duration-200 hover:bg-instituto-green/20"
-            >
-              <GraduationCap className="h-4 w-4 mr-2" />
-              📚 Cursos
-            </TabsTrigger>
-
-            {/* 📊 Relatórios e Dados */}
-            <TabsTrigger 
-              value="relatorios" 
-              className="data-[state=active]:bg-instituto-gold data-[state=active]:text-white text-netflix-text transition-all duration-200 hover:bg-instituto-gold/20"
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              📊 Relatórios
-            </TabsTrigger>
-            
-            {/* ⚙️ Configurações */}
-            <TabsTrigger 
-              value="configuracoes" 
-              className="data-[state=active]:bg-instituto-lilac data-[state=active]:text-white text-netflix-text transition-all duration-200 hover:bg-instituto-lilac/20"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              ⚙️ Config
-            </TabsTrigger>
-          </TabsList>
-
-          {/* 👥 ANÁLISE INDIVIDUAL DE CLIENTES */}
-          <TabsContent value="clientes" className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              {/* Seletor de Usuários */}
-              <div className="xl:col-span-1">
-                <UserSelector
-                  onUserSelect={setSelectedUserId}
-                  selectedUserId={selectedUserId}
-                />
-              </div>
-
-              {/* Dashboard Individual */}
-              <div className="xl:col-span-2">
-                <IndividualClientDashboard
-                  selectedUserId={selectedUserId}
-                  onClose={() => setSelectedUserId(null)}
-                />
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* 👥 GESTÃO DE USUÁRIOS */}
-          <TabsContent value="usuarios" className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Cadastro de Cliente */}
-              <Card className="bg-netflix-card border-netflix-border hover:border-instituto-purple/50 transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="text-netflix-text flex items-center gap-2">
-                    <UserPlus className="h-5 w-5 text-instituto-purple" />
-                    👤 Cadastrar Cliente
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ClientRegistrationForm />
-                </CardContent>
-              </Card>
-
-              {/* Lista de Usuários */}
-              <Card className="bg-netflix-card border-netflix-border hover:border-instituto-purple/50 transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="text-netflix-text flex items-center gap-2">
-                    <Users className="h-5 w-5 text-instituto-purple" />
-                    👥 Lista de Usuários
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <UsersList />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Gerenciamento Completo */}
-            <Card className="bg-netflix-card border-netflix-border hover:border-instituto-purple/50 transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="text-netflix-text flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-instituto-purple" />
-                  🔧 Gerenciamento Avançado
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <UserManagement />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* 📚 CURSOS PAGOS */}
-          <TabsContent value="cursos" className="space-y-6">
-            <Card className="bg-netflix-card border-netflix-border hover:border-instituto-green/50 transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="text-netflix-text flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5 text-instituto-green" />
-                  📚 Gerenciar Cursos Pagos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CourseManagement />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* 📊 RELATÓRIOS E DADOS */}
-          <TabsContent value="relatorios" className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Visualização de Dados */}
-              <Card className="bg-netflix-card border-netflix-border hover:border-instituto-gold/50 transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="text-netflix-text flex items-center gap-2">
-                    <Eye className="h-5 w-5 text-instituto-gold" />
-                    📈 Visualizar Dados
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <DataVisualization />
-                </CardContent>
-              </Card>
-
-              {/* Relatórios de Clientes */}
-              <Card className="bg-netflix-card border-netflix-border hover:border-instituto-gold/50 transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="text-netflix-text flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-instituto-gold" />
-                    📊 Relatórios de Clientes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ClientReports />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sistema de Peso Completo */}
-            <Card className="bg-netflix-card border-netflix-border hover:border-instituto-gold/50 transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="text-netflix-text flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-instituto-gold" />
-                  📈 Sistema de Controle de Peso
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CompleteTrendTrackWeightSystem />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ⚙️ CONFIGURAÇÕES E INTEGRAÇÕES */}
-          <TabsContent value="configuracoes" className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Gestão de Sessões */}
-              <Card className="bg-netflix-card border-netflix-border hover:border-instituto-lilac/50 transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="text-netflix-text flex items-center gap-2">
-                    <Video className="h-5 w-5 text-instituto-lilac" />
-                    🎥 Gestão de Sessões
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SessionManagement />
-                </CardContent>
-              </Card>
-
-              {/* Histórico de Sessões */}
-              <Card className="bg-netflix-card border-netflix-border hover:border-instituto-lilac/50 transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="text-netflix-text flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-instituto-lilac" />
-                    📅 Histórico de Sessões
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SessionHistory />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Configurações do Sistema */}
-            <Card className="bg-netflix-card border-netflix-border hover:border-instituto-lilac/50 transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="text-netflix-text flex items-center gap-2">
-                  <Database className="h-5 w-5 text-instituto-lilac" />
-                  🔧 Configurações do Sistema
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SystemSettings />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-        </Tabs>
+        {selectedTab === 'users' && <UserManagement />}
+        {selectedTab === 'courses' && <CourseManagement />}
+        {selectedTab === 'sessions' && <SessionManagement />}
+        {selectedTab === 'reports' && <DataVisualization />}
+        {selectedTab === 'settings' && <SystemSettings />}
       </div>
-    </AdminProtectedRoute>
+    </div>
   );
 };

@@ -1,30 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Users, 
-  Search, 
-  Edit, 
-  Trash2, 
-  UserPlus, 
-  Mail, 
-  Calendar, 
-  UserCheck, 
-  UserX,
-  Shield,
-  RotateCcw,
-  Filter
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { Users, UserPlus, Edit, Trash2, Search, RotateCw, UserCheck, UserX, Crown, Check, X } from 'lucide-react';
+import { ButtonLoading } from '@/components/ui/loading';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 interface UserProfile {
   id: string;
@@ -43,124 +30,71 @@ interface UserProfile {
 }
 
 export const UserManagement: React.FC = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { handleError } = useErrorHandler();
+  
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
-  const [editForm, setEditForm] = useState({
-    email: '',
-    full_name: '',
-    role: 'client' as 'admin' | 'client' | 'visitor'
-  });
-
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  
   const [createForm, setCreateForm] = useState({
     email: '',
     password: '',
     full_name: '',
     role: 'client' as 'admin' | 'client' | 'visitor'
   });
+  
+  const [editForm, setEditForm] = useState({
+    email: '',
+    full_name: '',
+    role: 'client' as 'admin' | 'client' | 'visitor'
+  });
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
+  // Buscar usuários
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
-      const { data: profiles, error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          user_id,
-          email,
-          full_name,
-          role,
-          created_at
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
-
+      
       if (error) throw error;
-
-      // Buscar dados físicos para cada perfil
-      const usersWithData = await Promise.all(
-        profiles.map(async (profile) => {
-          const { data: dadosFisicos } = await supabase
-            .from('dados_fisicos_usuario')
-            .select('nome_completo, peso_atual_kg, altura_cm, imc, meta_peso_kg')
-            .eq('user_id', profile.id)
-            .maybeSingle();
-
-          return {
-            ...profile,
-            dados_fisicos: dadosFisicos
-          };
-        })
-      );
-
-      setUsers(usersWithData);
+      setUsers(data || []);
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar a lista de usuários.",
-        variant: "destructive"
-      });
+      handleError(error, 'Carregar usuários');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEditUser = (user: UserProfile) => {
-    setEditingUser(user);
-    setEditForm({
-      email: user.email,
-      full_name: user.full_name || '',
-      role: user.role as 'admin' | 'client' | 'visitor'
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  const handleUpdateUser = async () => {
-    if (!editingUser) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          email: editForm.email,
-          full_name: editForm.full_name,
-          role: editForm.role
-        })
-        .eq('id', editingUser.id);
-
-      if (error) throw error;
-
+  // Criar usuário
+  const handleCreateUser = async () => {
+    if (!createForm.email || !createForm.password || !createForm.full_name) {
       toast({
-        title: "Sucesso",
-        description: "Usuário atualizado com sucesso."
-      });
-
-      setIsEditDialogOpen(false);
-      setEditingUser(null);
-      fetchUsers();
-    } catch (error) {
-      console.error('Erro ao atualizar usuário:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o usuário.",
+        title: "❌ Campos obrigatórios",
+        description: "Preencha todos os campos obrigatórios",
         variant: "destructive"
       });
+      return;
     }
-  };
 
-  const handleCreateUser = async () => {
     try {
+      setIsCreating(true);
+      
+      toast({
+        title: "👤 Criando usuário...",
+        description: "Aguarde enquanto criamos o usuário"
+      });
+
+      // Criar usuário no Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: createForm.email,
         password: createForm.password,
@@ -173,42 +107,108 @@ export const UserManagement: React.FC = () => {
 
       if (authError) throw authError;
 
-      // Como o trigger já cria o perfil, só precisamos atualizar o role se necessário
-      if (authData.user && createForm.role !== 'client') {
-        const { error: updateError } = await supabase
+      // Atualizar perfil com role
+      if (authData.user) {
+        const { error: profileError } = await supabase
           .from('profiles')
-          .update({ role: createForm.role })
+          .update({
+            full_name: createForm.full_name,
+            role: createForm.role
+          })
           .eq('user_id', authData.user.id);
 
-        if (updateError) throw updateError;
+        if (profileError) throw profileError;
       }
 
       toast({
-        title: "Sucesso",
-        description: "Usuário criado com sucesso."
+        title: "✅ Usuário criado com sucesso!",
+        description: `${createForm.full_name} foi adicionado ao sistema`
       });
 
-      setIsCreateDialogOpen(false);
+      // Resetar formulário
       setCreateForm({
         email: '',
         password: '',
         full_name: '',
         role: 'client'
       });
+
+      setIsCreateDialogOpen(false);
       fetchUsers();
     } catch (error) {
-      console.error('Erro ao criar usuário:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível criar o usuário.",
-        variant: "destructive"
-      });
+      handleError(error, 'Criar usuário');
+    } finally {
+      setIsCreating(false);
     }
   };
 
+  // Editar usuário
+  const handleEditUser = (user: any) => {
+    setSelectedUser(user);
+    setEditForm({
+      email: user.email || '',
+      full_name: user.full_name || '',
+      role: user.role || 'client'
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  // Atualizar usuário
+  const handleUpdateUser = async () => {
+    if (!selectedUser || !editForm.email || !editForm.full_name) {
+      toast({
+        title: "❌ Campos obrigatórios",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+      
+      toast({
+        title: "📝 Atualizando usuário...",
+        description: "Salvando alterações"
+      });
+
+      // Atualizar perfil
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          email: editForm.email,
+          full_name: editForm.full_name,
+          role: editForm.role
+        })
+        .eq('user_id', selectedUser.user_id);
+
+      if (error) throw error;
+
+      toast({
+        title: "✅ Usuário atualizado!",
+        description: "Dados salvos com sucesso"
+      });
+
+      setIsEditDialogOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error) {
+      handleError(error, 'Atualizar usuário');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Deletar usuário
   const handleDeleteUser = async (userId: string) => {
     try {
-      // Primeiro deletar o perfil (o cascade vai cuidar dos dados relacionados)
+      setIsDeleting(userId);
+      
+      toast({
+        title: "🗑️ Removendo usuário...",
+        description: "Aguarde enquanto removemos o usuário"
+      });
+
       const { error } = await supabase
         .from('profiles')
         .delete()
@@ -217,104 +217,60 @@ export const UserManagement: React.FC = () => {
       if (error) throw error;
 
       toast({
-        title: "Sucesso",
-        description: "Usuário removido com sucesso."
+        title: "✅ Usuário removido!",
+        description: "Usuário foi removido com sucesso"
       });
 
       fetchUsers();
     } catch (error) {
-      console.error('Erro ao deletar usuário:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover o usuário.",
-        variant: "destructive"
-      });
+      handleError(error, 'Remover usuário');
+    } finally {
+      setIsDeleting(null);
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.dados_fisicos?.nome_completo && user.dados_fisicos.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    
-    return matchesSearch && matchesRole;
-  });
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'bg-red-500/10 text-red-500 border-red-500/20';
-      case 'client': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
-    }
-  };
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'admin': return 'Administrador';
-      case 'client': return 'Cliente';
-      default: return 'Visitante';
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card className="bg-netflix-card border-netflix-border">
-        <CardContent className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-instituto-orange"></div>
-          <span className="ml-4 text-netflix-text">Carregando usuários...</span>
-        </CardContent>
-      </Card>
-    );
-  }
+  const filteredUsers = users.filter(user => 
+    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Header com filtros */}
-      <Card className="bg-netflix-card border-netflix-border">
+    <div className="space-y-4">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-netflix-text flex items-center gap-2">
-            <Shield className="h-5 w-5 text-instituto-orange" />
-            Gerenciamento de Usuários ({users.length})
+          <CardTitle className="flex items-center gap-2 text-netflix-text">
+            <Users className="h-5 w-5" />
+            Gerenciamento de Usuários
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-netflix-text-muted" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-netflix-text-muted" />
               <Input
-                placeholder="Buscar por email ou nome..."
+                placeholder="Buscar usuários..."
+                className="pl-10 bg-netflix-hover border-netflix-border text-netflix-text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-netflix-hover border-netflix-border text-netflix-text"
               />
             </div>
             
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-48 bg-netflix-hover border-netflix-border text-netflix-text">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os papéis</SelectItem>
-                <SelectItem value="admin">Administradores</SelectItem>
-                <SelectItem value="client">Clientes</SelectItem>
-                <SelectItem value="visitor">Visitantes</SelectItem>
-              </SelectContent>
-            </Select>
-
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="instituto-button">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Criar Usuário
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
+              <Button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Criar Usuário
+              </Button>
+              
+              <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Criar Novo Usuário</DialogTitle>
+                  <DialogTitle className="text-netflix-text">Criar Novo Usuário</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -325,8 +281,10 @@ export const UserManagement: React.FC = () => {
                       value={createForm.email}
                       onChange={(e) => setCreateForm({...createForm, email: e.target.value})}
                       className="bg-netflix-hover border-netflix-border text-netflix-text"
+                      placeholder="user@exemplo.com"
                     />
                   </div>
+                  
                   <div>
                     <Label htmlFor="create-password">Senha</Label>
                     <Input
@@ -335,8 +293,10 @@ export const UserManagement: React.FC = () => {
                       value={createForm.password}
                       onChange={(e) => setCreateForm({...createForm, password: e.target.value})}
                       className="bg-netflix-hover border-netflix-border text-netflix-text"
+                      placeholder="Senha forte (min. 6 caracteres)"
                     />
                   </div>
+                  
                   <div>
                     <Label htmlFor="create-name">Nome Completo</Label>
                     <Input
@@ -344,8 +304,10 @@ export const UserManagement: React.FC = () => {
                       value={createForm.full_name}
                       onChange={(e) => setCreateForm({...createForm, full_name: e.target.value})}
                       className="bg-netflix-hover border-netflix-border text-netflix-text"
+                      placeholder="Nome completo do usuário"
                     />
                   </div>
+                  
                   <div>
                     <Label htmlFor="create-role">Papel</Label>
                     <Select value={createForm.role} onValueChange={(value: 'admin' | 'client' | 'visitor') => setCreateForm({...createForm, role: value})}>
@@ -359,11 +321,41 @@ export const UserManagement: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
                   <div className="flex gap-2">
-                    <Button onClick={handleCreateUser} className="instituto-button flex-1">
-                      Criar Usuário
+                    <Button 
+                      onClick={handleCreateUser} 
+                      disabled={isCreating}
+                      className="instituto-button flex-1"
+                    >
+                      {isCreating ? (
+                        <>
+                          <ButtonLoading className="mr-2" />
+                          Criando...
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Criar Usuário
+                        </>
+                      )}
                     </Button>
-                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="border-netflix-border text-netflix-text">
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsCreateDialogOpen(false);
+                        setCreateForm({
+                          email: '',
+                          password: '',
+                          full_name: '',
+                          role: 'client'
+                        });
+                      }}
+                      disabled={isCreating}
+                      className="border-netflix-border text-netflix-text hover:bg-netflix-hover"
+                    >
+                      <X className="h-4 w-4 mr-2" />
                       Cancelar
                     </Button>
                   </div>
@@ -371,119 +363,115 @@ export const UserManagement: React.FC = () => {
               </DialogContent>
             </Dialog>
 
-            <Button onClick={fetchUsers} variant="outline" className="border-netflix-border text-netflix-text hover:bg-netflix-hover">
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Atualizar
+            <Button 
+              onClick={fetchUsers} 
+              disabled={loading}
+              variant="outline" 
+              className="border-netflix-border text-netflix-text hover:bg-netflix-hover"
+            >
+              {loading ? (
+                <>
+                  <ButtonLoading className="mr-2" />
+                  Carregando...
+                </>
+              ) : (
+                <>
+                  <RotateCw className="h-4 w-4 mr-2" />
+                  Atualizar
+                </>
+              )}
             </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Lista de usuários */}
-      <Card className="bg-netflix-card border-netflix-border">
-        <CardContent className="p-0">
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-16 w-16 text-netflix-text-muted mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-netflix-text mb-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-netflix-text">Usuários do Sistema</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <ButtonLoading className="mr-2" />
+                <span className="text-netflix-text">Carregando usuários...</span>
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="text-center py-8 text-netflix-text-muted">
                 Nenhum usuário encontrado
-              </h3>
-              <p className="text-netflix-text-muted">
-                {searchTerm || roleFilter !== 'all' ? 'Tente ajustar os filtros' : 'Nenhum usuário cadastrado ainda'}
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-netflix-border">
-              {filteredUsers.map((user, index) => (
-                <div key={user.id} className="p-6 hover:bg-netflix-hover transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-instituto-orange/20 rounded-full flex items-center justify-center">
-                        <UserCheck className="h-6 w-6 text-instituto-orange" />
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-netflix-text">
-                            {user.dados_fisicos?.nome_completo || user.full_name || 'Nome não informado'}
-                          </h3>
-                          <Badge variant="outline" className={getRoleBadgeColor(user.role)}>
-                            {getRoleLabel(user.role)}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-netflix-text-muted">
-                          <div className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {user.email}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                          </div>
-                        </div>
-                        {user.dados_fisicos && (
-                          <div className="text-xs text-netflix-text-muted">
-                            IMC: {user.dados_fisicos.imc} | Peso: {user.dados_fisicos.peso_atual_kg}kg | Meta: {user.dados_fisicos.meta_peso_kg}kg
-                          </div>
-                        )}
-                      </div>
+              </div>
+            ) : (
+              filteredUsers.map((user, index) => (
+                <div key={user.user_id} className="flex items-center justify-between p-3 bg-netflix-hover rounded-lg border border-netflix-border">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-instituto-orange rounded-full flex items-center justify-center text-white font-bold">
+                      {user.full_name?.charAt(0) || 'U'}
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditUser(user)}
-                        className="border-netflix-border text-netflix-text hover:bg-netflix-gray"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-red-500/20 text-red-500 hover:bg-red-500/10"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-netflix-card border-netflix-border">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="text-netflix-text">
-                              Confirmar exclusão
-                            </AlertDialogTitle>
-                            <AlertDialogDescription className="text-netflix-text-muted">
-                              Tem certeza que deseja excluir o usuário {user.email}? Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="border-netflix-border text-netflix-text">
-                              Cancelar
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteUser(user.user_id)}
-                              className="bg-red-500 hover:bg-red-600 text-white"
-                            >
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                    <div>
+                      <p className="font-medium text-netflix-text">{user.full_name || 'Sem nome'}</p>
+                      <p className="text-sm text-netflix-text-muted">{user.email}</p>
                     </div>
                   </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEditUser(user)}
+                      className="border-netflix-border text-netflix-text hover:bg-netflix-gray"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isDeleting === user.user_id}
+                          className="border-red-500/20 text-red-500 hover:bg-red-500/10"
+                        >
+                          {isDeleting === user.user_id ? (
+                            <ButtonLoading className="h-4 w-4" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja remover {user.full_name}? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="border-netflix-border text-netflix-text hover:bg-netflix-hover">
+                            Cancelar
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteUser(user.user_id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Confirmar Exclusão
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Dialog de edição */}
+      {/* Modal de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogTitle className="text-netflix-text">Editar Usuário</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -496,6 +484,7 @@ export const UserManagement: React.FC = () => {
                 className="bg-netflix-hover border-netflix-border text-netflix-text"
               />
             </div>
+            
             <div>
               <Label htmlFor="edit-name">Nome Completo</Label>
               <Input
@@ -505,6 +494,7 @@ export const UserManagement: React.FC = () => {
                 className="bg-netflix-hover border-netflix-border text-netflix-text"
               />
             </div>
+            
             <div>
               <Label htmlFor="edit-role">Papel</Label>
               <Select value={editForm.role} onValueChange={(value: 'admin' | 'client' | 'visitor') => setEditForm({...editForm, role: value})}>
@@ -518,11 +508,41 @@ export const UserManagement: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+            
             <div className="flex gap-2">
-              <Button onClick={handleUpdateUser} className="instituto-button flex-1">
-                Salvar Alterações
+              <Button 
+                onClick={handleUpdateUser} 
+                disabled={isUpdating}
+                className="instituto-button flex-1"
+              >
+                {isUpdating ? (
+                  <>
+                    <ButtonLoading className="mr-2" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Salvar Alterações
+                  </>
+                )}
               </Button>
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="border-netflix-border text-netflix-text">
+              
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setSelectedUser(null);
+                  setEditForm({
+                    email: '',
+                    full_name: '',
+                    role: 'client'
+                  });
+                }}
+                disabled={isUpdating}
+                className="border-netflix-border text-netflix-text hover:bg-netflix-hover"
+              >
+                <X className="h-4 w-4 mr-2" />
                 Cancelar
               </Button>
             </div>

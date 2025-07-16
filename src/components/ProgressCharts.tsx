@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { 
   LineChart, 
   Line, 
@@ -15,18 +18,17 @@ import {
   Bar,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  ComposedChart,
+  ReferenceLine,
+  ResponsiveContainer as RechartsContainer
 } from 'recharts';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Scale,
-  Activity,
-  Target,
-  TrendingUp,
-  BarChart3,
-  Zap,
-  Bone,
-  Droplets,
-  Flame
+  Scale, Activity, Target, TrendingUp, TrendingDown, 
+  BarChart3, Zap, Bone, Droplets, Flame, Heart,
+  Calendar, Timer, Filter, Eye, EyeOff, Maximize,
+  ArrowUp, ArrowDown, Minus, ChevronRight, Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -35,49 +37,255 @@ import { useProgressData } from '@/hooks/useProgressData';
 import { LastWeighingCards } from '@/components/LastWeighingCards';
 import { EvolutionSummary } from '@/components/EvolutionSummary';
 
+// Paleta de cores modernizada para saúde
 const COLORS = {
-  primary: '#F97316', // instituto-orange
-  current: '#F97316', // laranja para semana atual
-  previous: '#6B7280', // cinza para semana anterior
-  success: '#10B981',
-  warning: '#F59E0B',
-  destructive: '#EF4444',
-  muted: '#6B7280'
+  primary: '#3B82F6',       // Azul principal
+  secondary: '#10B981',     // Verde saúde
+  accent: '#F59E0B',        // Amarelo energia
+  danger: '#EF4444',        // Vermelho alerta
+  purple: '#8B5CF6',        // Roxo metabolismo
+  pink: '#EC4899',          // Rosa feminino
+  teal: '#14B8A6',          // Verde água
+  orange: '#F97316',        // Laranja institucional
+  gradients: {
+    weight: ['#3B82F6', '#1D4ED8'],
+    bodyFat: ['#F59E0B', '#D97706'],
+    muscle: ['#10B981', '#047857'],
+    water: ['#14B8A6', '#0F766E'],
+    waist: ['#EC4899', '#BE185D'],
+    imc: ['#8B5CF6', '#7C3AED']
+  }
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-netflix-card border border-netflix-border rounded-lg p-3 shadow-lg">
-        <p className="text-netflix-text font-medium">{`Data: ${label}`}</p>
-        {payload.map((entry: any, index: number) => {
-          const getUnit = (name: string) => {
-            switch (name) {
-              case 'Peso': return 'kg';
-              case 'Circunferência': return 'cm';
-              case 'Massa Muscular': return 'kg';
-              case 'Massa Óssea': return 'kg';
-              case 'Água Corporal': return '%';
-              case 'Taxa Metabólica': return 'kcal';
-              case 'Idade Metabólica': return ' anos';
-              default: return '';
-            }
-          };
-          
-          return (
-            <p key={index} className="text-netflix-text-muted">
-              {`${entry.name}: ${entry.value}${getUnit(entry.name)}`}
-            </p>
-          );
-        })}
+const MetricCard = ({ title, value, change, changeType, icon: Icon, color, subtitle, progress = undefined }) => {
+  const getChangeIcon = () => {
+    switch (changeType) {
+      case 'increase': return ArrowUp;
+      case 'decrease': return ArrowDown;
+      default: return Minus;
+    }
+  };
+
+  const getChangeColor = () => {
+    switch (changeType) {
+      case 'increase': return 'text-health-error';
+      case 'decrease': return 'text-health-success';
+      default: return 'text-muted-foreground';
+    }
+  };
+
+  const ChangeIcon = getChangeIcon();
+
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02, y: -2 }}
+      className="metric-card group"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className={`p-3 rounded-2xl bg-gradient-to-br ${color}/20`}>
+          <Icon className={`w-6 h-6 ${color}`} />
+        </div>
+        {change && (
+          <div className={`flex items-center gap-1 ${getChangeColor()}`}>
+            <ChangeIcon className="w-4 h-4" />
+            <span className="text-sm font-medium">{change}</span>
+          </div>
+        )}
       </div>
-    );
-  }
-  return null;
+      
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+        <div className="text-2xl font-bold">{value}</div>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        )}
+        {progress !== undefined && (
+          <div className="mt-3">
+            <Progress value={progress} className="h-2" />
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+const ModernChart = ({ data, type, title, dataKey, color, subtitle }) => {
+  const [isVisible, setIsVisible] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const renderChart = () => {
+    const chartProps = {
+      data,
+      margin: { top: 20, right: 30, left: 20, bottom: 20 }
+    };
+
+    switch (type) {
+      case 'area':
+        return (
+          <AreaChart {...chartProps}>
+            <defs>
+              <linearGradient id={`${dataKey}Gradient`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
+                <stop offset="95%" stopColor={color} stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--health-background))" />
+            <XAxis 
+              dataKey="data" 
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+              axisLine={{ stroke: 'hsl(var(--health-background))' }}
+            />
+            <YAxis 
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+              axisLine={{ stroke: 'hsl(var(--health-background))' }}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))', 
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+              }}
+            />
+            <Area 
+              type="monotone" 
+              dataKey={dataKey} 
+              stroke={color}
+              strokeWidth={3}
+              fill={`url(#${dataKey}Gradient)`}
+              dot={{ fill: color, strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, fill: color, strokeWidth: 2 }}
+            />
+          </AreaChart>
+        );
+      
+      case 'line':
+        return (
+          <LineChart {...chartProps}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--health-background))" />
+            <XAxis 
+              dataKey="data" 
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+              axisLine={{ stroke: 'hsl(var(--health-background))' }}
+            />
+            <YAxis 
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+              axisLine={{ stroke: 'hsl(var(--health-background))' }}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))', 
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+              }}
+            />
+            <Line 
+              type="monotone" 
+              dataKey={dataKey} 
+              stroke={color}
+              strokeWidth={3}
+              dot={{ fill: color, strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, fill: color, strokeWidth: 2 }}
+            />
+          </LineChart>
+        );
+      
+      case 'bar':
+        return (
+          <BarChart {...chartProps}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--health-background))" />
+            <XAxis 
+              dataKey="data" 
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+              axisLine={{ stroke: 'hsl(var(--health-background))' }}
+            />
+            <YAxis 
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+              axisLine={{ stroke: 'hsl(var(--health-background))' }}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))', 
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+              }}
+            />
+            <Bar 
+              dataKey={dataKey} 
+              fill={color}
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="glass-card p-6 relative group"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-health-primary/5 to-health-secondary/5 rounded-2xl"></div>
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold gradient-text">{title}</h3>
+            {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsVisible(!isVisible)}
+              className="opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              {isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Maximize className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {isVisible && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
+            >
+              <div className={`${isFullscreen ? 'h-96' : 'h-80'} transition-all duration-300`}>
+                <ResponsiveContainer width="100%" height="100%">
+                  {renderChart()}
+                </ResponsiveContainer>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
 };
 
 export const ProgressCharts = () => {
   const { pesagens, dadosFisicos, loading } = useProgressData();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [timeRange, setTimeRange] = useState(30);
 
   // Configurar listener em tempo real para atualizações
   useEffect(() => {
@@ -104,17 +312,13 @@ export const ProgressCharts = () => {
   if (loading) {
     return (
       <div className="space-y-8">
-        {/* Loading skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse bg-netflix-card border-netflix-border">
-              <CardHeader>
-                <div className="h-6 bg-netflix-hover rounded w-3/4"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 bg-netflix-hover rounded"></div>
-              </CardContent>
-            </Card>
+            <div key={i} className="glass-card p-6 animate-pulse">
+              <div className="h-4 bg-health-background rounded mb-4"></div>
+              <div className="h-8 bg-health-background rounded mb-2"></div>
+              <div className="h-3 bg-health-background rounded w-2/3"></div>
+            </div>
           ))}
         </div>
       </div>
@@ -123,486 +327,214 @@ export const ProgressCharts = () => {
 
   if (!pesagens.length) {
     return (
-      <div className="space-y-8">
-        <Card className="bg-netflix-card border-netflix-border">
-          <CardContent className="p-12 text-center">
-            <BarChart3 className="h-16 w-16 text-instituto-orange mx-auto mb-4 opacity-70" />
-            <h3 className="text-2xl font-semibold text-netflix-text mb-2">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card p-12 text-center"
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div className="p-4 rounded-2xl bg-health-primary/10">
+            <BarChart3 className="h-16 w-16 text-health-primary" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold gradient-text mb-2">
               Sem Dados de Progresso
             </h3>
-            <p className="text-netflix-text-muted text-lg">
+            <p className="text-muted-foreground text-lg">
               Registre suas pesagens para ver os gráficos de evolução
             </p>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </motion.div>
     );
   }
 
-  // Preparar dados para os gráficos
-  const chartData = pesagens.slice(0, 10).reverse().map(pesagem => {
+  // Preparar dados para gráficos
+  const chartData = pesagens.slice(0, timeRange).reverse().map(pesagem => {
     const altura = dadosFisicos?.altura_cm || 170;
     const imc = pesagem.peso_kg / Math.pow(altura / 100, 2);
     
     return {
-      data: format(new Date(pesagem.data_medicao), 'dd/MM', { locale: ptBR }),
-      dataCompleta: format(new Date(pesagem.data_medicao), 'dd/MM/yyyy', { locale: ptBR }),
+      data: format(new Date(pesagem.data_medicao), 'dd/MM'),
       peso: pesagem.peso_kg,
       imc: Math.round(imc * 10) / 10,
-      circunferencia: pesagem.circunferencia_abdominal_cm || dadosFisicos?.circunferencia_abdominal_cm || 0,
-      // Novos indicadores
-      idadeMetabolica: pesagem.idade_metabolica || null,
-      taxaMetabolica: pesagem.taxa_metabolica_basal || null,
-      massaOssea: pesagem.massa_ossea_kg || null,
-      massaMuscular: pesagem.massa_muscular_kg || null,
-      aguaCorporal: pesagem.agua_corporal_pct || null
+      gordura: pesagem.gordura_corporal_pct || 0,
+      musculo: pesagem.massa_muscular_kg || 0,
+      agua: pesagem.agua_corporal_pct || 0,
+      circunferencia: pesagem.circunferencia_abdominal_cm || 0,
+      data_medicao: pesagem.data_medicao
     };
   });
 
-  // Dados para o gráfico da água corporal (formato de donut)
-  const aguaCorporalData = [
-    { name: 'Água', value: chartData[chartData.length - 1]?.aguaCorporal || 0, color: COLORS.primary },
-    { name: 'Outros', value: 100 - (chartData[chartData.length - 1]?.aguaCorporal || 0), color: COLORS.muted }
-  ];
+  const latestData = pesagens[0] || {};
+  const previousData = pesagens[1] || {};
+
+  // Calcular mudanças
+  const weightChange = latestData.peso_kg - (previousData.peso_kg || latestData.peso_kg);
+  const bodyFatChange = (latestData.gordura_corporal_pct || 0) - (previousData.gordura_corporal_pct || 0);
+  const muscleChange = (latestData.massa_muscular_kg || 0) - (previousData.massa_muscular_kg || 0);
+  const waistChange = (latestData.circunferencia_abdominal_cm || 0) - (previousData.circunferencia_abdominal_cm || 0);
+
+  const getChangeType = (change) => {
+    if (Math.abs(change) < 0.1) return 'neutral';
+    return change > 0 ? 'increase' : 'decrease';
+  };
 
   return (
     <div className="space-y-8">
-      {/* Título e Subtítulo */}
-      <div className="text-center space-y-2 progress-chart-enter">
-        <h2 className="text-3xl font-bold text-netflix-text">
-          Evolução da Sua Jornada
-        </h2>
-        <p className="text-netflix-text-muted text-lg">
-          Acompanhe sua transformação com clareza e motivação
-        </p>
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-4xl font-bold gradient-text">
+            Evolução da Sua Jornada
+          </h2>
+          <p className="text-xl text-muted-foreground">
+            Acompanhe sua transformação com clareza e motivação
+          </p>
+        </motion.div>
+
+        {/* Time Range Selector */}
+        <div className="flex items-center justify-center gap-2">
+          {[7, 14, 30, 60].map((range) => (
+            <Button
+              key={range}
+              variant={timeRange === range ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTimeRange(range)}
+              className="px-4 py-2"
+            >
+              {range}d
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Resumo da Evolução */}
       <EvolutionSummary />
 
+      {/* Métricas Principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <MetricCard
+          title="Peso Atual"
+          value={`${latestData.peso_kg || 0} kg`}
+          change={weightChange ? `${weightChange > 0 ? '+' : ''}${weightChange.toFixed(1)} kg` : null}
+          changeType={getChangeType(weightChange)}
+          icon={Scale}
+          color="text-health-primary"
+          subtitle="Última medição"
+        />
+        
+        <MetricCard
+          title="Gordura Corporal"
+          value={`${latestData.gordura_corporal_pct || 0}%`}
+          change={bodyFatChange ? `${bodyFatChange > 0 ? '+' : ''}${bodyFatChange.toFixed(1)}%` : null}
+          changeType={getChangeType(bodyFatChange)}
+          icon={Flame}
+          color="text-health-warning"
+          subtitle="Percentual atual"
+        />
+        
+        <MetricCard
+          title="Massa Muscular"
+          value={`${latestData.massa_muscular_kg || 0} kg`}
+          change={muscleChange ? `${muscleChange > 0 ? '+' : ''}${muscleChange.toFixed(1)} kg` : null}
+          changeType={muscleChange > 0 ? 'increase' : muscleChange < 0 ? 'decrease' : 'neutral'}
+          icon={Activity}
+          color="text-health-success"
+          subtitle="Massa magra"
+        />
+        
+        <MetricCard
+          title="Circunferência"
+          value={`${latestData.circunferencia_abdominal_cm || 0} cm`}
+          change={waistChange ? `${waistChange > 0 ? '+' : ''}${waistChange.toFixed(1)} cm` : null}
+          changeType={getChangeType(waistChange)}
+          icon={Target}
+          color="text-health-secondary"
+          subtitle="Abdominal"
+        />
+      </div>
+
       {/* Abas de Gráficos */}
-      <Tabs defaultValue="basicos" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-netflix-card border border-netflix-border">
-          <TabsTrigger 
-            value="basicos" 
-            className="data-[state=active]:bg-instituto-orange data-[state=active]:text-white"
-          >
-            Indicadores Básicos
-          </TabsTrigger>
-          <TabsTrigger 
-            value="detalhamento" 
-            className="data-[state=active]:bg-instituto-orange data-[state=active]:text-white"
-          >
-            Detalhamento Corporal
-          </TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 glass-card">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="composition">Composição</TabsTrigger>
+          <TabsTrigger value="trends">Tendências</TabsTrigger>
         </TabsList>
 
-        {/* Aba Indicadores Básicos */}
-        <TabsContent value="basicos" className="space-y-6 mt-6">
-          {/* Gráficos Principais */}
+        <TabsContent value="overview" className="space-y-6 mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Evolução do Peso */}
-            <Card className="bg-netflix-card border-netflix-border hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-netflix-text">
-                  <Scale className="h-5 w-5 text-instituto-orange" />
-                  Evolução do Peso
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={320}>
-                  <AreaChart data={chartData}>
-                    <defs>
-                      <linearGradient id="pesoGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--netflix-border))" />
-                    <XAxis 
-                      dataKey="data" 
-                      tick={{ fill: 'hsl(var(--netflix-text))' }}
-                      axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                    />
-                    <YAxis 
-                      tick={{ fill: 'hsl(var(--netflix-text))' }}
-                      axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="peso" 
-                      stroke={COLORS.primary}
-                      strokeWidth={3}
-                      fill="url(#pesoGradient)"
-                      name="Peso"
-                      dot={{ fill: COLORS.primary, strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, fill: COLORS.primary }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Evolução do IMC */}
-            <Card className="bg-netflix-card border-netflix-border hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-netflix-text">
-                  <Activity className="h-5 w-5 text-instituto-orange" />
-                  Evolução do IMC
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={320}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--netflix-border))" />
-                    <XAxis 
-                      dataKey="data" 
-                      tick={{ fill: 'hsl(var(--netflix-text))' }}
-                      axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                    />
-                    <YAxis 
-                      tick={{ fill: 'hsl(var(--netflix-text))' }}
-                      axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="imc" 
-                      stroke={COLORS.success}
-                      strokeWidth={3}
-                      name="IMC"
-                      dot={{ fill: COLORS.success, strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, fill: COLORS.success }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <ModernChart
+              data={chartData}
+              type="area"
+              title="Evolução do Peso"
+              subtitle="Progresso ao longo do tempo"
+              dataKey="peso"
+              color={COLORS.primary}
+            />
+            
+            <ModernChart
+              data={chartData}
+              type="line"
+              title="Índice de Massa Corporal"
+              subtitle="IMC calculado automaticamente"
+              dataKey="imc"
+              color={COLORS.purple}
+            />
           </div>
-
-          {/* Evolução da Circunferência Abdominal */}
-          <Card className="bg-netflix-card border-netflix-border hover:shadow-xl transition-all duration-300">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-netflix-text">
-                <Target className="h-5 w-5 text-instituto-orange" />
-                Evolução da Circunferência Abdominal
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={320}>
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="circunferenciaGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={COLORS.warning} stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor={COLORS.warning} stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--netflix-border))" />
-                  <XAxis 
-                    dataKey="data" 
-                    tick={{ fill: 'hsl(var(--netflix-text))' }}
-                    axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                  />
-                  <YAxis 
-                    tick={{ fill: 'hsl(var(--netflix-text))' }}
-                    axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="circunferencia" 
-                    stroke={COLORS.warning}
-                    strokeWidth={3}
-                    fill="url(#circunferenciaGradient)"
-                    name="Circunferência"
-                    dot={{ fill: COLORS.warning, strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: COLORS.warning }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
         </TabsContent>
 
-        {/* Aba Detalhamento Corporal */}
-        <TabsContent value="detalhamento" className="space-y-6 mt-6">
-          {/* Primeira linha - Massa Muscular e Massa Óssea */}
+        <TabsContent value="composition" className="space-y-6 mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Massa Muscular */}
-            <Card className="bg-netflix-card border-netflix-border hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-netflix-text">
-                  <Zap className="h-5 w-5 text-instituto-orange" />
-                  Massa Muscular
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {chartData.some(d => d.massaMuscular) ? (
-                  <ResponsiveContainer width="100%" height={320}>
-                    <AreaChart data={chartData.filter(d => d.massaMuscular)}>
-                      <defs>
-                        <linearGradient id="muscularGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={COLORS.success} stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor={COLORS.success} stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--netflix-border))" />
-                      <XAxis 
-                        dataKey="data" 
-                        tick={{ fill: 'hsl(var(--netflix-text))' }}
-                        axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                      />
-                      <YAxis 
-                        tick={{ fill: 'hsl(var(--netflix-text))' }}
-                        axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area 
-                        type="monotone" 
-                        dataKey="massaMuscular" 
-                        stroke={COLORS.success}
-                        strokeWidth={3}
-                        fill="url(#muscularGradient)"
-                        name="Massa Muscular"
-                        dot={{ fill: COLORS.success, strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6, fill: COLORS.success }}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-80 flex items-center justify-center text-netflix-text-muted">
-                    <div className="text-center">
-                      <Zap className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>Dados não disponíveis</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Massa Óssea */}
-            <Card className="bg-netflix-card border-netflix-border hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-netflix-text">
-                  <Bone className="h-5 w-5 text-instituto-orange" />
-                  Massa Óssea
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {chartData.some(d => d.massaOssea) ? (
-                  <ResponsiveContainer width="100%" height={320}>
-                    <LineChart data={chartData.filter(d => d.massaOssea)}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--netflix-border))" />
-                      <XAxis 
-                        dataKey="data" 
-                        tick={{ fill: 'hsl(var(--netflix-text))' }}
-                        axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                      />
-                      <YAxis 
-                        tick={{ fill: 'hsl(var(--netflix-text))' }}
-                        axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Line 
-                        type="monotone" 
-                        dataKey="massaOssea" 
-                        stroke="#94A3B8"
-                        strokeWidth={3}
-                        name="Massa Óssea"
-                        dot={{ fill: "#94A3B8", strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6, fill: "#94A3B8" }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-80 flex items-center justify-center text-netflix-text-muted">
-                    <div className="text-center">
-                      <Bone className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>Dados não disponíveis</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ModernChart
+              data={chartData}
+              type="area"
+              title="Gordura Corporal"
+              subtitle="Percentual de gordura"
+              dataKey="gordura"
+              color={COLORS.accent}
+            />
+            
+            <ModernChart
+              data={chartData}
+              type="line"
+              title="Massa Muscular"
+              subtitle="Quilos de músculo"
+              dataKey="musculo"
+              color={COLORS.secondary}
+            />
           </div>
+        </TabsContent>
 
-          {/* Segunda linha - Taxa Metabólica e Idade Metabólica */}
+        <TabsContent value="trends" className="space-y-6 mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Taxa Metabólica Basal */}
-            <Card className="bg-netflix-card border-netflix-border hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-netflix-text">
-                  <Flame className="h-5 w-5 text-instituto-orange" />
-                  Taxa Metabólica Basal
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {chartData.some(d => d.taxaMetabolica) ? (
-                  <ResponsiveContainer width="100%" height={320}>
-                    <BarChart data={chartData.filter(d => d.taxaMetabolica)}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--netflix-border))" />
-                      <XAxis 
-                        dataKey="data" 
-                        tick={{ fill: 'hsl(var(--netflix-text))' }}
-                        axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                      />
-                      <YAxis 
-                        tick={{ fill: 'hsl(var(--netflix-text))' }}
-                        axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar 
-                        dataKey="taxaMetabolica" 
-                        fill={COLORS.warning}
-                        name="Taxa Metabólica"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-80 flex items-center justify-center text-netflix-text-muted">
-                    <div className="text-center">
-                      <Flame className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>Dados não disponíveis</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Idade Metabólica */}
-            <Card className="bg-netflix-card border-netflix-border hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-netflix-text">
-                  <TrendingUp className="h-5 w-5 text-instituto-orange" />
-                  Idade Metabólica
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {chartData.some(d => d.idadeMetabolica) ? (
-                  <ResponsiveContainer width="100%" height={320}>
-                    <LineChart data={chartData.filter(d => d.idadeMetabolica)}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--netflix-border))" />
-                      <XAxis 
-                        dataKey="data" 
-                        tick={{ fill: 'hsl(var(--netflix-text))' }}
-                        axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                      />
-                      <YAxis 
-                        tick={{ fill: 'hsl(var(--netflix-text))' }}
-                        axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Line 
-                        type="monotone" 
-                        dataKey="idadeMetabolica" 
-                        stroke={COLORS.destructive}
-                        strokeWidth={3}
-                        name="Idade Metabólica"
-                        dot={{ fill: COLORS.destructive, strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6, fill: COLORS.destructive }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-80 flex items-center justify-center text-netflix-text-muted">
-                    <div className="text-center">
-                      <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>Dados não disponíveis</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ModernChart
+              data={chartData}
+              type="bar"
+              title="Água Corporal"
+              subtitle="Percentual de hidratação"
+              dataKey="agua"
+              color={COLORS.teal}
+            />
+            
+            <ModernChart
+              data={chartData}
+              type="line"
+              title="Circunferência Abdominal"
+              subtitle="Medida em centímetros"
+              dataKey="circunferencia"
+              color={COLORS.pink}
+            />
           </div>
-
-          {/* Terceira linha - Água Corporal */}
-          <Card className="bg-netflix-card border-netflix-border hover:shadow-xl transition-all duration-300">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-netflix-text">
-                <Droplets className="h-5 w-5 text-instituto-orange" />
-                Percentual de Água Corporal
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Gráfico de linha da evolução */}
-                <div>
-                  {chartData.some(d => d.aguaCorporal) ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <LineChart data={chartData.filter(d => d.aguaCorporal)}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--netflix-border))" />
-                        <XAxis 
-                          dataKey="data" 
-                          tick={{ fill: 'hsl(var(--netflix-text))' }}
-                          axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                        />
-                        <YAxis 
-                          tick={{ fill: 'hsl(var(--netflix-text))' }}
-                          axisLine={{ stroke: 'hsl(var(--netflix-border))' }}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="aguaCorporal" 
-                          stroke="#06B6D4"
-                          strokeWidth={3}
-                          name="Água Corporal"
-                          dot={{ fill: "#06B6D4", strokeWidth: 2, r: 4 }}
-                          activeDot={{ r: 6, fill: "#06B6D4" }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-64 flex items-center justify-center text-netflix-text-muted">
-                      <div className="text-center">
-                        <Droplets className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>Dados não disponíveis</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Gráfico circular do último valor */}
-                <div className="flex items-center justify-center">
-                  {aguaCorporalData[0].value > 0 ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={aguaCorporalData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          startAngle={90}
-                          endAngle={450}
-                          dataKey="value"
-                        >
-                          {aguaCorporalData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value: any) => [`${value}%`, '']}
-                          labelFormatter={() => 'Composição Corporal'}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="text-center">
-                      <Droplets className="h-16 w-16 text-instituto-orange mx-auto mb-4 opacity-50" />
-                      <p className="text-netflix-text-muted">Sem dados recentes</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Cards da Última Pesagem */}
+      {/* Cards de Últimas Pesagens */}
       <LastWeighingCards />
     </div>
   );

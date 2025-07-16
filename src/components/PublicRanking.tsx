@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Trophy, Medal, Crown, Star, Target, Flame } from 'lucide-react';
+import { Trophy, Medal, Crown, Star, Target, Flame, Share2, MessageCircle, Heart } from 'lucide-react';
 import { useUserPoints } from '@/hooks/useUserPoints';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from '@/components/ui/use-toast';
 
 interface PublicRankingProps {
   timeFilter: 'week' | 'month' | 'all';
@@ -41,14 +44,45 @@ export const PublicRanking: React.FC<PublicRankingProps> = ({
   onTimeFilterChange
 }) => {
   const { ranking, currentUserRanking, fetchRanking, loading } = useUserPoints();
+  const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchRanking(timeFilter);
   }, [timeFilter, fetchRanking]);
 
-  // Mostrar todos os usuários, não apenas os top 10
-  const allUsers = ranking;
-  const currentUser = currentUserRanking;
+  const handleLikeUser = (userId: string) => {
+    setLikedUsers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+    toast({
+      title: "Incentivo enviado!",
+      description: "Continue motivando outros usuários em sua jornada!",
+      duration: 2000,
+    });
+  };
+
+  const handleShareRanking = async () => {
+    try {
+      await navigator.share({
+        title: 'Ranking Instituto dos Sonhos',
+        text: 'Confira o ranking de transformação do Instituto dos Sonhos! 🏆',
+        url: window.location.href
+      });
+    } catch (err) {
+      toast({
+        title: "Link copiado!",
+        description: "Compartilhe com seus amigos e os desafie!",
+        duration: 2000,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -63,42 +97,40 @@ export const PublicRanking: React.FC<PublicRankingProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Ranking dos Campeões Header */}
       <Card className="netflix-card border-instituto-orange/20">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold text-netflix-text flex items-center gap-2">
-              <Trophy className="w-6 h-6 text-instituto-orange" />
-              Ranking dos Campeões
-            </CardTitle>
-            <div className="flex gap-2">
-              {(['week', 'month', 'all'] as const).map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => onTimeFilterChange(filter)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    timeFilter === filter
-                      ? 'bg-instituto-orange text-white'
-                      : 'bg-netflix-card text-netflix-text-muted hover:bg-netflix-hover'
-                  }`}
-                >
-                  {filter === 'week' ? 'Semana' : filter === 'month' ? 'Mês' : 'Geral'}
-                </button>
-              ))}
-            </div>
-          </div>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-2xl font-bold text-netflix-text">
+            Ranking dos Campeões
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-instituto-orange hover:bg-instituto-orange/10"
+            onClick={handleShareRanking}
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            Compartilhar
+          </Button>
         </CardHeader>
+
         <CardContent>
-          {/* Top 3 Pódio */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            {allUsers.slice(0, 3).map((user, index) => {
+          {/* Top 3 Pódio - Com Animação */}
+          <motion.div 
+            className="grid grid-cols-3 gap-4 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {ranking.slice(0, 3).map((user, index) => {
               const position = index + 1;
               return (
-                <div
+                <motion.div
                   key={user.id}
                   className={`text-center p-4 rounded-lg ${getMedalClass(position)} ${
-                    currentUser && user.id === currentUser.id ? 'ring-2 ring-instituto-orange' : ''
+                    currentUserRanking && user.id === currentUserRanking.id ? 'ring-2 ring-instituto-orange' : ''
                   }`}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 >
                   <div className="flex justify-center mb-2">
                     {getMedalIcon(position)}
@@ -117,63 +149,146 @@ export const PublicRanking: React.FC<PublicRankingProps> = ({
                     <Flame className="w-3 h-3 text-orange-500" />
                     <span className="text-sm">{user.streak} dias</span>
                   </div>
-                </div>
+                  
+                  {/* Botões de Interação */}
+                  <div className="flex justify-center gap-2 mt-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`hover:text-pink-500 ${likedUsers.has(user.id) ? 'text-pink-500' : ''}`}
+                      onClick={() => handleLikeUser(user.id)}
+                    >
+                      <Heart className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hover:text-blue-500"
+                      onClick={() => toast({
+                        title: "Em breve!",
+                        description: "Envio de mensagens será liberado em breve!",
+                        duration: 2000,
+                      })}
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
 
           {/* Lista de Todos os Usuários */}
           <div className="space-y-2">
             <h4 className="text-lg font-semibold text-netflix-text mb-4">
-              Ranking Completo ({allUsers.length} participantes)
+              Ranking Completo ({ranking.length} participantes)
             </h4>
-            {allUsers.map((user) => (
-                <div
+            <AnimatePresence>
+              {ranking.map((user, index) => (
+                <motion.div
                   key={user.id}
-                  className={`flex items-center justify-between p-4 rounded-lg netflix-card-hover ${
-                    currentUser && user.id === currentUser.id 
-                      ? 'bg-instituto-orange/10 border border-instituto-orange/30' 
-                      : 'bg-netflix-card'
-                  }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-8 h-8">
-                    {getMedalIcon(user.position)}
-                  </div>
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback className="bg-instituto-purple text-white font-bold">
-                      {user.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-netflix-text">{user.name}</span>
-                      {currentUser && user.id === currentUser.id && (
-                        <Badge variant="outline" className="text-xs bg-instituto-orange/20 text-instituto-orange border-instituto-orange">
-                          Você
-                        </Badge>
-                      )}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <div
+                    className={`flex items-center justify-between p-4 rounded-lg netflix-card-hover ${
+                      currentUserRanking && user.id === currentUserRanking.id 
+                        ? 'bg-instituto-orange/10 border border-instituto-orange/30' 
+                        : 'bg-netflix-card'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-8 h-8">
+                        {getMedalIcon(user.position)}
+                      </div>
+                      <Avatar className="w-10 h-10">
+                        <AvatarFallback className="bg-instituto-purple text-white font-bold">
+                          {user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-netflix-text">{user.name}</span>
+                          {currentUserRanking && user.id === currentUserRanking.id && (
+                            <Badge variant="outline" className="text-xs bg-instituto-orange/20 text-instituto-orange border-instituto-orange">
+                              Você
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-netflix-text-muted">
+                          <span className="flex items-center gap-1">
+                            <Target className="w-3 h-3" />
+                            {user.completedChallenges} desafios
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Flame className="w-3 h-3" />
+                            {user.streak} dias
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-netflix-text-muted">
-                      <span className="flex items-center gap-1">
-                        <Target className="w-3 h-3" />
-                        {user.completedChallenges} desafios
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Flame className="w-3 h-3" />
-                        {user.streak} dias
-                      </span>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-instituto-orange">
+                          {user.points.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-netflix-text-muted">pontos</div>
+                      </div>
+                      
+                      {/* Botões de Interação */}
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`hover:text-pink-500 ${likedUsers.has(user.id) ? 'text-pink-500' : ''}`}
+                          onClick={() => handleLikeUser(user.id)}
+                        >
+                          <Heart className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-bold text-instituto-orange">
-                    {user.points.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-netflix-text-muted">pontos</div>
-                </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Seção de Motivação */}
+      <Card className="bg-gradient-to-r from-instituto-orange/10 to-instituto-purple/10 border-none">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold mb-3">Como participar do ranking?</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="flex items-start gap-2">
+              <div className="mt-1">
+                <Target className="w-5 h-5 text-instituto-orange" />
               </div>
-            ))}
+              <div>
+                <p className="font-medium">Complete Desafios</p>
+                <p className="text-muted-foreground">Participe dos desafios diários e ganhe pontos extras</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="mt-1">
+                <Flame className="w-5 h-5 text-instituto-orange" />
+              </div>
+              <div>
+                <p className="font-medium">Mantenha a Sequência</p>
+                <p className="text-muted-foreground">Acesse todos os dias para multiplicar seus pontos</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="mt-1">
+                <Trophy className="w-5 h-5 text-instituto-orange" />
+              </div>
+              <div>
+                <p className="font-medium">Conquiste Prêmios</p>
+                <p className="text-muted-foreground">Os melhores do ranking ganham recompensas especiais</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

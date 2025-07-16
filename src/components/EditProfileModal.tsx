@@ -10,7 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { User, Mail, Phone, Calendar, Users, Ruler, Loader } from 'lucide-react';
 
 interface EditProfileModalProps {
-  trigger?: React.ReactNode;
+  open: boolean;
+  setOpen: (open: boolean) => void;
   userData?: {
     full_name?: string;
     email?: string;
@@ -23,13 +24,13 @@ interface EditProfileModalProps {
 }
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({ 
-  trigger, 
+  open, 
+  setOpen,
   userData,
   onDataUpdated 
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { subDays, format } from 'date-fns';
+import { useEnhancedPoints, PONTOS_BASE } from './useEnhancedPoints';
 
 export interface PontuacaoDiaria {
   id: string;
@@ -28,6 +29,116 @@ export interface PontuacaoDiaria {
 export const usePontuacaoDiaria = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { calcularPontuacaoTotal, getFeedbackAvancado, determinarNivel } = useEnhancedPoints();
+
+  const calcularPontosDiarios = async (missaoDia: any) => {
+    let pontos = 0;
+
+    // Líquido ao acordar
+    if (missaoDia.liquido_ao_acordar === 'sim') {
+      pontos += PONTOS_BASE.liquido_manha;
+    }
+
+    // Prática de conexão
+    if (missaoDia.pratica_conexao === 'sim') {
+      pontos += PONTOS_BASE.conexao_interna;
+    }
+
+    // Energia ao acordar
+    if (missaoDia.energia_ao_acordar) {
+      if (missaoDia.energia_ao_acordar >= 8) {
+        pontos += PONTOS_BASE.energia_acordar.alta;
+      } else if (missaoDia.energia_ao_acordar >= 5) {
+        pontos += PONTOS_BASE.energia_acordar.media;
+      } else {
+        pontos += PONTOS_BASE.energia_acordar.baixa;
+      }
+    }
+
+    // Sono
+    if (missaoDia.sono_horas) {
+      if (missaoDia.sono_horas >= 8) {
+        pontos += PONTOS_BASE.sono.mais8;
+      } else if (missaoDia.sono_horas >= 6) {
+        pontos += PONTOS_BASE.sono.entre6e8;
+      } else {
+        pontos += PONTOS_BASE.sono.menos6;
+      }
+    }
+
+    // Água
+    if (missaoDia.agua_litros) {
+      const litros = parseFloat(missaoDia.agua_litros);
+      pontos += Math.floor(litros * PONTOS_BASE.agua.por_litro);
+      if (litros >= 2) {
+        pontos += PONTOS_BASE.agua.bonus_meta;
+      }
+    }
+
+    // Atividade física
+    if (missaoDia.atividade_fisica) {
+      pontos += PONTOS_BASE.atividade_fisica;
+    }
+
+    // Nível de estresse
+    if (missaoDia.estresse_nivel && missaoDia.estresse_nivel <= 5) {
+      pontos += PONTOS_BASE.sem_estresse;
+    }
+
+    // Fome emocional
+    if (missaoDia.fome_emocional === false) {
+      pontos += PONTOS_BASE.controle_fome;
+    }
+
+    // Gratidão
+    if (missaoDia.gratidao?.length > 10) {
+      pontos += PONTOS_BASE.gratidao;
+    }
+
+    // Pequena vitória
+    if (missaoDia.pequena_vitoria?.length > 5) {
+      pontos += PONTOS_BASE.pequena_vitoria;
+    }
+
+    // Intenção para amanhã
+    if (missaoDia.intencao_para_amanha?.length > 5) {
+      pontos += PONTOS_BASE.intencao_amanha;
+    }
+
+    // Nota do dia
+    if (missaoDia.nota_dia && missaoDia.nota_dia >= 7) {
+      pontos += PONTOS_BASE.avaliacao_dia;
+    }
+
+    // Aplicar multiplicadores e bônus
+    const pontuacaoFinal = await calcularPontuacaoTotal(pontos);
+
+    return {
+      pontos_liquido_manha: missaoDia.liquido_ao_acordar === 'sim' ? PONTOS_BASE.liquido_manha : 0,
+      pontos_conexao_interna: missaoDia.pratica_conexao === 'sim' ? PONTOS_BASE.conexao_interna : 0,
+      pontos_energia_acordar: missaoDia.energia_ao_acordar ? 
+        (missaoDia.energia_ao_acordar >= 8 ? PONTOS_BASE.energia_acordar.alta : 
+         missaoDia.energia_ao_acordar >= 5 ? PONTOS_BASE.energia_acordar.media : 
+         PONTOS_BASE.energia_acordar.baixa) : 0,
+      pontos_sono: missaoDia.sono_horas ? 
+        (missaoDia.sono_horas >= 8 ? PONTOS_BASE.sono.mais8 : 
+         missaoDia.sono_horas >= 6 ? PONTOS_BASE.sono.entre6e8 : 
+         PONTOS_BASE.sono.menos6) : 0,
+      pontos_agua: missaoDia.agua_litros ? 
+        Math.floor(parseFloat(missaoDia.agua_litros) * PONTOS_BASE.agua.por_litro) + 
+        (parseFloat(missaoDia.agua_litros) >= 2 ? PONTOS_BASE.agua.bonus_meta : 0) : 0,
+      pontos_atividade_fisica: missaoDia.atividade_fisica ? PONTOS_BASE.atividade_fisica : 0,
+      pontos_estresse: missaoDia.estresse_nivel && missaoDia.estresse_nivel <= 5 ? PONTOS_BASE.sem_estresse : 0,
+      pontos_fome_emocional: missaoDia.fome_emocional === false ? PONTOS_BASE.controle_fome : 0,
+      pontos_gratidao: missaoDia.gratidao?.length > 10 ? PONTOS_BASE.gratidao : 0,
+      pontos_pequena_vitoria: missaoDia.pequena_vitoria?.length > 5 ? PONTOS_BASE.pequena_vitoria : 0,
+      pontos_intencao_amanha: missaoDia.intencao_para_amanha?.length > 5 ? PONTOS_BASE.intencao_amanha : 0,
+      pontos_avaliacao_dia: missaoDia.nota_dia && missaoDia.nota_dia >= 7 ? PONTOS_BASE.avaliacao_dia : 0,
+      total_pontos_dia: pontuacaoFinal,
+      categoria_dia: pontuacaoFinal >= 100 ? 'excelente' : 
+                    pontuacaoFinal >= 60 ? 'medio' : 'baixa'
+    };
+  };
 
   const { data: pontuacaoHoje, isLoading: isLoadingHoje } = useQuery({
     queryKey: ['pontuacao-diaria', user?.id, format(new Date(), 'yyyy-MM-dd')],
@@ -75,57 +186,11 @@ export const usePontuacaoDiaria = () => {
     enabled: !!user?.id,
   });
 
-  const { data: rankingSemanal, isLoading: isLoadingRanking } = useQuery({
-    queryKey: ['ranking-semanal'],
-    queryFn: async () => {
-      const dataInicio = format(subDays(new Date(), 7), 'yyyy-MM-dd');
-      
-      const { data, error } = await supabase
-        .from('pontuacao_diaria')
-        .select(`
-          user_id,
-          total_pontos_dia,
-          data,
-          profiles!inner(full_name, email)
-        `)
-        .gte('data', dataInicio)
-        .order('total_pontos_dia', { ascending: false });
-
-      if (error) {
-        console.error('Erro ao buscar ranking semanal:', error);
-        return [];
-      }
-
-      // Agrupar por usuário e calcular média semanal
-      const rankingAgrupado = data.reduce((acc: any, item: any) => {
-        const userId = item.user_id;
-        if (!acc[userId]) {
-          acc[userId] = {
-            user_id: userId,
-            nome: item.profiles.full_name || item.profiles.email,
-            pontos: [],
-            total_pontos: 0,
-            media_semanal: 0,
-          };
-        }
-        acc[userId].pontos.push(item.total_pontos_dia);
-        acc[userId].total_pontos += item.total_pontos_dia;
-        return acc;
-      }, {});
-
-      // Calcular média e ordenar
-      const rankingFinal = Object.values(rankingAgrupado).map((user: any) => ({
-        ...user,
-        media_semanal: Math.round(user.total_pontos / user.pontos.length),
-      })).sort((a: any, b: any) => b.media_semanal - a.media_semanal);
-
-      return rankingFinal;
-    },
-  });
-
   const criarPontuacaoMutation = useMutation({
-    mutationFn: async (pontuacao: Partial<PontuacaoDiaria>) => {
+    mutationFn: async (missaoDia: any) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
+
+      const pontuacao = await calcularPontosDiarios(missaoDia);
 
       const { data, error } = await supabase
         .from('pontuacao_diaria')
@@ -143,13 +208,15 @@ export const usePontuacaoDiaria = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pontuacao-diaria'] });
       queryClient.invalidateQueries({ queryKey: ['historico-pontuacao'] });
-      queryClient.invalidateQueries({ queryKey: ['ranking-semanal'] });
+      queryClient.invalidateQueries({ queryKey: ['ranking-avancado'] });
     },
   });
 
   const atualizarPontuacaoMutation = useMutation({
-    mutationFn: async (pontuacao: Partial<PontuacaoDiaria>) => {
+    mutationFn: async (missaoDia: any) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
+
+      const pontuacao = await calcularPontosDiarios(missaoDia);
 
       const { data, error } = await supabase
         .from('pontuacao_diaria')
@@ -165,51 +232,18 @@ export const usePontuacaoDiaria = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pontuacao-diaria'] });
       queryClient.invalidateQueries({ queryKey: ['historico-pontuacao'] });
-      queryClient.invalidateQueries({ queryKey: ['ranking-semanal'] });
+      queryClient.invalidateQueries({ queryKey: ['ranking-avancado'] });
     },
   });
-
-  const getFeedbackPontuacao = (pontos: number) => {
-    if (pontos >= 100) {
-      return {
-        emoji: '🟢',
-        mensagem: 'Perfeito! Sua dedicação está transformando sua vida!',
-        cor: 'text-green-600',
-        categoria: 'excelente' as const,
-      };
-    } else if (pontos >= 80) {
-      return {
-        emoji: '🟡',
-        mensagem: 'Excelente progresso! Você está no caminho certo.',
-        cor: 'text-yellow-600',
-        categoria: 'medio' as const,
-      };
-    } else if (pontos >= 60) {
-      return {
-        emoji: '🟠',
-        mensagem: 'Bom trabalho! Continue assim.',
-        cor: 'text-orange-600',
-        categoria: 'medio' as const,
-      };
-    } else {
-      return {
-        emoji: '🔴',
-        mensagem: 'Hoje foi difícil, mas você não desistiu! Amanhã é uma nova oportunidade.',
-        cor: 'text-red-600',
-        categoria: 'baixa' as const,
-      };
-    }
-  };
 
   return {
     pontuacaoHoje,
     historicoPontuacao,
-    rankingSemanal,
     isLoadingHoje,
     isLoadingHistorico,
-    isLoadingRanking,
     criarPontuacao: criarPontuacaoMutation.mutate,
     atualizarPontuacao: atualizarPontuacaoMutation.mutate,
-    getFeedbackPontuacao,
+    getFeedbackAvancado,
+    determinarNivel,
   };
 };
