@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -50,30 +50,44 @@ export const useUserPoints = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  // Inscrever-se para atualizações em tempo real
-  useEffect(() => {
-    const channel = supabase
-      .channel('public_ranking')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_points'
-        },
-        () => {
-          console.log('🔄 Atualização detectada no ranking');
-          fetchRanking('week'); // Atualiza o ranking quando houver mudanças
-        }
-      )
-      .subscribe();
+  // Função para gerar dados fictícios de demonstração
+  const generateDemoRanking = (): RankingUser[] => {
+    const demoNames = [
+      'Ana Silva', 'Carlos Santos', 'Maria Costa', 'João Ferreira', 'Paula Oliveira',
+      'Roberto Silva', 'Fernanda Lima', 'Pedro Almeida', 'Juliana Rocha', 'Rafael Mendes',
+      'Camila Souza', 'Diego Barbosa', 'Larissa Pereira', 'Thiago Martins', 'Bianca Cardoso',
+      'Lucas Rodrigues', 'Mariana Gomes', 'Bruno Nascimento', 'Gabriela Freitas', 'Vinicius Torres'
+    ];
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    const cities = [
+      'São Paulo', 'Rio de Janeiro', 'Belo Horizonte', 'Salvador', 'Brasília',
+      'Fortaleza', 'Curitiba', 'Recife', 'Porto Alegre', 'Manaus'
+    ];
 
-  const fetchRanking = async (timeFilter: 'week' | 'month' | 'all' = 'all') => {
+    return demoNames.map((name, index) => {
+      const points = Math.floor(Math.random() * 5000) + 500;
+      const level = calculateLevel(points);
+      
+      return {
+        id: `demo_${index + 1}`,
+        name,
+        points,
+        position: index + 1,
+        streak: Math.floor(Math.random() * 30) + 1,
+        completedChallenges: Math.floor(Math.random() * 50) + 5,
+        level,
+        levelProgress: calculateLevelProgress(points),
+        lastActive: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        city: cities[index % cities.length],
+        achievements: ['demo_user']
+      };
+    }).sort((a, b) => b.points - a.points).map((user, index) => ({
+      ...user,
+      position: index + 1
+    }));
+  };
+
+  const fetchRanking = useCallback(async (timeFilter: 'week' | 'month' | 'all' = 'all') => {
     console.log('🏆 Buscando ranking com filtro:', timeFilter);
     try {
       setLoading(true);
@@ -97,10 +111,7 @@ export const useUserPoints = () => {
           full_name,
           email,
           user_id,
-          role,
-          city,
-          last_active,
-          achievements
+          role
         `);
 
       if (error) {
@@ -161,9 +172,9 @@ export const useUserPoints = () => {
           completedChallenges: userPoints.completed_challenges || 0,
           level,
           levelProgress: calculateLevelProgress(points),
-          lastActive: profile.last_active,
-          city: profile.city || 'São Paulo',
-          achievements: profile.achievements || [],
+          lastActive: new Date().toISOString(), // Valor padrão
+          city: 'São Paulo', // Valor padrão
+          achievements: [], // Valor padrão
         };
       });
 
@@ -190,44 +201,31 @@ export const useUserPoints = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  // Função para gerar dados fictícios de demonstração
-  const generateDemoRanking = (): RankingUser[] => {
-    const demoNames = [
-      'Ana Silva', 'Carlos Santos', 'Maria Costa', 'João Ferreira', 'Paula Oliveira',
-      'Roberto Silva', 'Fernanda Lima', 'Pedro Almeida', 'Juliana Rocha', 'Rafael Mendes',
-      'Camila Souza', 'Diego Barbosa', 'Larissa Pereira', 'Thiago Martins', 'Bianca Cardoso',
-      'Lucas Rodrigues', 'Mariana Gomes', 'Bruno Nascimento', 'Gabriela Freitas', 'Vinicius Torres'
-    ];
+  // Inscrever-se para atualizações em tempo real
+  useEffect(() => {
+    const channel = supabase
+      .channel('public_ranking')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_points'
+        },
+        () => {
+          console.log('🔄 Atualização detectada no ranking');
+          // Evitar dependência circular - usar callback direto
+          fetchRanking('all');
+        }
+      )
+      .subscribe();
 
-    const cities = [
-      'São Paulo', 'Rio de Janeiro', 'Belo Horizonte', 'Salvador', 'Brasília',
-      'Fortaleza', 'Curitiba', 'Recife', 'Porto Alegre', 'Manaus'
-    ];
-
-    return demoNames.map((name, index) => {
-      const points = Math.floor(Math.random() * 5000) + 500;
-      const level = calculateLevel(points);
-      
-      return {
-        id: `demo_${index + 1}`,
-        name,
-        points,
-        position: index + 1,
-        streak: Math.floor(Math.random() * 30) + 1,
-        completedChallenges: Math.floor(Math.random() * 50) + 5,
-        level,
-        levelProgress: calculateLevelProgress(points),
-        lastActive: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-        city: cities[index % cities.length],
-        achievements: ['demo_user']
-      };
-    }).sort((a, b) => b.points - a.points).map((user, index) => ({
-      ...user,
-      position: index + 1
-    }));
-  };
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchRanking]);
 
   return {
     ranking,
