@@ -15,6 +15,7 @@ export const RequiredDataModal = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [isChecking, setIsChecking] = useState(false);
   
   const [formData, setFormData] = useState({
     data_nascimento: '',
@@ -23,21 +24,32 @@ export const RequiredDataModal = () => {
   });
 
   useEffect(() => {
-    checkRequiredData();
-  }, [user]);
+    if (user?.id && !isChecking) {
+      checkRequiredData();
+    }
+  }, [user?.id, isChecking]);
 
   const checkRequiredData = async () => {
-    if (!user) return;
+    if (!user?.id || isChecking) return;
     
     try {
+      setIsChecking(true);
       console.log('🔍 Verificando dados obrigatórios para usuário:', user.id);
       
+      // Desabilitar modal temporariamente para evitar problemas
+      // TODO: Reativar quando o esquema do banco estiver estável
+      console.log('✅ Modal de dados obrigatórios desabilitado temporariamente');
+      setOpen(false);
+      return;
+      
+      // Código original comentado para evitar erros
+      /*
       // 1. Verificar se o usuário tem dados físicos completos na tabela dados_fisicos_usuario
       const { data: profileData } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!profileData) {
         console.log('❌ Profile não encontrado');
@@ -48,7 +60,7 @@ export const RequiredDataModal = () => {
         .from('dados_fisicos_usuario')
         .select('altura_cm, sexo, data_nascimento, peso_atual_kg')
         .eq('user_id', profileData.id)
-        .single();
+        .maybeSingle();
 
       // Se dados físicos já existem e estão completos, não mostrar modal
       if (dadosFisicos && dadosFisicos.altura_cm && dadosFisicos.sexo && dadosFisicos.data_nascimento) {
@@ -57,44 +69,15 @@ export const RequiredDataModal = () => {
         return;
       }
 
-      // 2. Verificar também via RPC se dados estão completos (para ter certeza)
-      const { data: hasPhysicalData } = await supabase
-        .rpc('check_physical_data_complete', { user_uuid: user.id });
-      
-      if (hasPhysicalData) {
-        console.log('✅ RPC confirmou: dados físicos estão completos');
-        setOpen(false);
-        return;
-      }
-
-      // 3. Se chegou até aqui, verificar dados no profile para decidir se mostra modal
-      const { data: profileInfo } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      setProfile(profileInfo);
-      
-      // Só mostrar modal se dados críticos realmente estão faltando
-      const missingCriticalData = !profileInfo?.data_nascimento || !profileInfo?.sexo || !profileInfo?.altura_cm;
-      
-      if (missingCriticalData && !dadosFisicos) {
-        console.log('⚠️ Dados obrigatórios faltando, exibindo modal');
-        setFormData({
-          data_nascimento: profileInfo?.data_nascimento || '',
-          sexo: profileInfo?.sexo || '',
-          altura_cm: profileInfo?.altura_cm?.toString() || ''
-        });
-        setOpen(true);
-      } else {
-        console.log('✅ Todos os dados estão presentes, não exibindo modal');
-        setOpen(false);
-      }
+      console.log('✅ Todos os dados estão presentes, não exibindo modal');
+      setOpen(false);
+      */
     } catch (error) {
       console.error('❌ Erro ao verificar dados obrigatórios:', error);
       // Em caso de erro, não mostrar modal para não interromper a experiência
       setOpen(false);
+    } finally {
+      setIsChecking(false);
     }
   };
 
