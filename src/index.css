@@ -1,0 +1,440 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 15 10% 7%;
+    --foreground: 0 0% 98%;
+
+    --card: 15 8% 12%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 15 8% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 16 68% 54%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Cores oficiais Instituto dos Sonhos */
+    --instituto-orange: 16 85% 57%; /* #d9633b */
+    --instituto-orange-hover: 16 85% 52%;
+    --instituto-orange-light: 25 90% 85%;
+    --instituto-purple: 264 47% 65%; /* roxo suave para destaques */
+    --instituto-purple-light: 264 47% 75%;
+    --instituto-lilac: 280 40% 80%; /* lilás suave */
+    --instituto-lilac-light: 280 30% 90%;
+    --instituto-green: 120 50% 50%; /* verde para progresso */
+    --instituto-green-light: 120 50% 60%;
+    --instituto-light: 45 100% 98%;
+    --instituto-dark: 0 0% 7%;
+    --instituto-gold: 45 93% 67%;
+    --instituto-warm: 32 89% 89%;
+    --instituto-cream: 45 50% 95%;
+    
+    /* Cores especiais para Diário da Saúde */
+    --diary-warm: 25 85% 88%; /* laranja claro acolhedor */
+    --diary-lilac: 280 40% 85%; /* lilás suave */
+    --diary-glow: 25 85% 70%; /* brilho laranja */
+    
+    /* Netflix-style dark theme with better contrast */
+    --netflix-dark: 0 0% 7%;
+    --netflix-card: 0 0% 12%;
+    --netflix-text: 0 0% 98%;
+    --netflix-text-muted: 0 0% 85%;
+    --netflix-hover: 0 0% 18%;
+    --netflix-border: 0 0% 25%;
+    
+  /* Category colors with better contrast */
+  --category-nutrition: 120 65% 55%;
+  --category-psychology: 270 75% 70%;
+  --category-wellness: 150 50% 60%;
+  --category-fitness: 30 95% 65%;
+  --category-mindfulness: 200 85% 70%;
+  
+  /* Netflix background colors */
+  --netflix-background: 0 0% 7%;
+
+    /* XP and Gamification colors */
+    --xp-gold: 45 100% 65%;
+    --xp-silver: 240 10% 80%;
+    --xp-bronze: 25 85% 65%;
+
+    /* Missions colors */
+    --mission-complete: 120 50% 50%;
+    --mission-pending: 45 100% 65%;
+    --mission-locked: 0 0% 40%;
+
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 0 0% 25%; /* melhor contrast */
+    --muted-foreground: 0 0% 75%; /* melhor contrast */
+
+    --accent: 16 68% 54%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 0 0% 25%; /* melhor contrast */
+    --input: 0 0% 18%; /* melhor contrast */
+    --ring: 16 68% 54%;
+
+    --radius: 8px;
+
+    --sidebar-background: 15 8% 10%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 16 68% 54%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 18%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 25%;
+    --sidebar-ring: 16 68% 54%;
+  }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 16 68% 54%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 16 68% 54%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 16 68% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Títulos maiores e melhor contraste */
+  h1 {
+    @apply text-4xl md:text-5xl font-bold text-foreground;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl font-bold text-foreground;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl font-semibold text-foreground;
+  }
+  
+  /* Fix bold text visibility */
+  .font-bold, .font-semibold, strong, b {
+    @apply text-foreground;
+    font-weight: 700;
+  }
+}
+
+@layer components {
+  .netflix-container {
+    @apply min-h-screen bg-netflix-dark text-netflix-text;
+  }
+
+  .netflix-card {
+    @apply transition-all duration-300 ease-out transform bg-netflix-card border border-netflix-border;
+  }
+  
+  .netflix-card:hover {
+    @apply scale-105 shadow-2xl border-instituto-orange/30;
+  }
+
+  /* Mission components */
+  .mission-card {
+    @apply bg-netflix-card border border-netflix-border rounded-lg p-4 transition-all duration-300;
+  }
+
+  .mission-card.completed {
+    @apply border-instituto-green bg-instituto-green/10;
+  }
+
+  .mission-card.pending {
+    @apply border-instituto-orange bg-instituto-orange/5;
+  }
+
+  .mission-button {
+    @apply px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300;
+  }
+
+  .mission-button.complete {
+    @apply bg-instituto-green text-white hover:bg-instituto-green-light;
+  }
+
+  .mission-button.completed {
+    @apply bg-instituto-green/20 text-instituto-green border border-instituto-green;
+  }
+
+  /* Ranking improvements */
+  .ranking-medal-gold {
+    @apply bg-gradient-to-r from-yellow-400 to-yellow-600 text-white;
+  }
+
+  .ranking-medal-silver {
+    @apply bg-gradient-to-r from-gray-300 to-gray-500 text-white;
+  }
+
+  .ranking-medal-bronze {
+    @apply bg-gradient-to-r from-amber-400 to-amber-600 text-white;
+  }
+
+  /* Better contrast for text - using direct CSS custom properties */
+  .text-netflix-text {
+    color: hsl(var(--netflix-text));
+  }
+
+  .text-netflix-text-muted {
+    color: hsl(var(--netflix-text-muted));
+  }
+
+  .bg-netflix-dark {
+    background-color: hsl(var(--netflix-dark));
+  }
+
+  .bg-netflix-card {
+    background-color: hsl(var(--netflix-card));
+  }
+
+  .bg-netflix-hover {
+    background-color: hsl(var(--netflix-hover));
+  }
+
+  .border-netflix-border {
+    border-color: hsl(var(--netflix-border));
+  }
+
+  .instituto-button {
+    @apply bg-instituto-orange hover:bg-instituto-orange-hover text-white border-0 font-semibold text-base;
+  }
+
+  /* Responsive improvements */
+  .responsive-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+
+  .responsive-text {
+    @apply text-base md:text-lg;
+  }
+
+  .responsive-title {
+    @apply text-2xl md:text-3xl lg:text-4xl font-bold;
+  }
+
+  /* Enhanced visual effects */
+  .floating-card {
+    @apply animate-float;
+  }
+
+  .shimmer-effect {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+
+  .pulse-glow {
+    @apply animate-glow;
+  }
+
+  /* Category specific styling */
+  .category-nutrition {
+    @apply bg-category-nutrition text-white;
+  }
+
+  .category-psychology {
+    @apply bg-category-psychology text-white;
+  }
+
+  .category-wellness {
+    @apply bg-category-wellness text-white;
+  }
+
+  .category-fitness {
+    @apply bg-category-fitness text-white;
+  }
+
+  .category-mindfulness {
+    @apply bg-category-mindfulness text-white;
+  }
+
+  .bg-netflix-background {
+    background-color: hsl(var(--netflix-background));
+  }
+
+  /* Progress Charts Enhanced Animations */
+  .progress-card {
+    @apply transform transition-all duration-300 ease-out;
+  }
+
+  .progress-card:hover {
+    @apply scale-105 shadow-2xl;
+  }
+
+  .progress-chart-enter {
+    @apply opacity-0 translate-y-4;
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .progress-chart-enter:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .progress-chart-enter:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .progress-chart-enter:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .evolution-summary {
+    @apply animate-fade-in;
+  }
+
+  .chart-tooltip {
+    @apply animate-scale-in;
+  }
+
+  .metric-card {
+    @apply transition-all duration-300 ease-out transform;
+  }
+
+  .metric-card:hover {
+    @apply scale-105 shadow-lg;
+  }
+
+  .trend-icon {
+    @apply animate-pulse;
+  }
+
+  .progress-gradient {
+    background: linear-gradient(135deg, 
+      hsl(var(--instituto-orange)) 0%, 
+      hsl(var(--instituto-purple)) 100%);
+  }
+
+  .chart-gradient-orange {
+    background: linear-gradient(180deg, 
+      hsl(var(--instituto-orange) / 0.3) 0%, 
+      hsl(var(--instituto-orange) / 0) 100%);
+  }
+
+  .chart-gradient-green {
+    background: linear-gradient(180deg, 
+      hsl(var(--instituto-green) / 0.3) 0%, 
+      hsl(var(--instituto-green) / 0) 100%);
+  }
+
+  .chart-gradient-warning {
+    background: linear-gradient(180deg, 
+      hsl(var(--netflix-warning) / 0.3) 0%, 
+      hsl(var(--netflix-warning) / 0) 100%);
+  }
+
+  .stagger-animation {
+    animation: staggerFadeIn 0.6s ease-out;
+  }
+
+  .stagger-animation:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-animation:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-animation:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-animation:nth-child(4) { animation-delay: 0.4s; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chartDataEnter {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(var(--instituto-orange) / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px hsl(var(--instituto-orange) / 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
