@@ -1,10 +1,11 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/hooks/useAuth';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorDisplay, useErrorHandler } from '@/hooks/useErrorHandler';
+import { initAnalytics, trackPageView } from '@/lib/analytics';
 
 // Lazy loading das páginas principais
 const Index = lazy(() => import('@/pages/Index'));
@@ -136,6 +137,18 @@ class ErrorBoundary extends React.Component<
 const AppContent = React.memo(() => {
   const { errors, clearError, clearErrors } = useErrorHandler();
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const location = useLocation();
+
+  // Inicializar ferramentas de Analytics (executa apenas uma vez)
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
+  // Registrar pageviews a cada mudança de rota
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
 
   useEffect(() => {
     // Inicialização da aplicação
