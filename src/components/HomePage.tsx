@@ -354,7 +354,7 @@ const HomePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
                 >
-                  <span className="text-yellow-400">Pare de adiar.</span><br />
+                  <span className="text-yellow-400">Comece agora.</span><br />
                   <span className="bg-gradient-to-r from-primary to-health-purple bg-clip-text text-transparent">
                     Transforme sua vida
                   </span><br />
