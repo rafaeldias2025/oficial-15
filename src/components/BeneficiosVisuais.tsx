@@ -32,7 +32,7 @@ import { EvolucaoSemanal } from "./EvolucaoSemanal";
 import { Silhueta3D } from "./Silhueta3D";
 import { useHealthIntegration } from '@/hooks/useHealthIntegration';
 import { GoogleFitModal } from './GoogleFitModal';
-import { AppleHealthModal } from './AppleHealthModal';
+
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -65,39 +65,18 @@ export const BeneficiosVisuais: React.FC = () => {
 
   const {
     state: healthState,
-    isIOS,
-    isAndroid,
-    connectAppleHealth,
     connectGoogleFit
   } = useHealthIntegration();
 
   const [showGoogleFitModal, setShowGoogleFitModal] = useState(false);
-  const [showAppleHealthModal, setShowAppleHealthModal] = useState(false);
 
-  const getHealthIcon = () => {
-    if (isIOS) return <Apple className="h-5 w-5" />;
-    if (isAndroid) return <Chrome className="h-5 w-5" />;
-    return <Smartphone className="h-5 w-5" />;
-  };
-  const getHealthPlatform = () => {
-    if (isIOS) return 'Apple Health';
-    if (isAndroid) return 'Google Fit';
-    return 'Dados de Saúde';
-  };
   const handleHealthConnection = () => {
-    if (isIOS) {
-      setShowAppleHealthModal(true);
-    } else {
-      setShowGoogleFitModal(true);
-    }
+    console.log('🏃 Abrindo modal Google Fit');
+    setShowGoogleFitModal(true);
   };
 
   const handleGoogleFitConnect = async (email: string) => {
     await connectGoogleFit(email);
-  };
-
-  const handleAppleHealthConnect = async () => {
-    await connectAppleHealth();
   };
 
   // Função centralizada para buscar e consolidar TODOS os dados
@@ -645,14 +624,7 @@ export const BeneficiosVisuais: React.FC = () => {
         isConnected={healthState.isConnected}
       />
       
-      {/* Modal do Apple Health */}
-      <AppleHealthModal
-        isOpen={showAppleHealthModal}
-        onClose={() => setShowAppleHealthModal(false)}
-        onConnect={handleAppleHealthConnect}
-        isLoading={healthState.isLoading}
-        isConnected={healthState.isConnected}
-      />
+
     </div>
   );
 };
