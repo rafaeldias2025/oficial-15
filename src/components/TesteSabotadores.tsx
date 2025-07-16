@@ -333,8 +333,56 @@ export const TesteSabotadores: React.FC = () => {
   // Função para executar teste automatizado
   const executeAutomatedTest = async () => {
     console.log('🚀 Iniciando teste automatizado...');
-    const result = await runAutomatedTest();
-    console.log('📊 Resultado do teste:', result);
+    setIsSubmitting(true);
+    
+    try {
+      const result = await runAutomatedTest();
+      console.log('📊 Resultado do teste:', result);
+      
+      if (result.success) {
+        toast.success('Teste automatizado executado com sucesso! Todas as respostas foram salvas.');
+        
+        // Simular preenchimento das respostas
+        const autoRespostas = new Array(115).fill(null).map((_, index) => 
+          Math.floor(Math.random() * 5) + 1 // Respostas aleatórias de 1 a 5
+        );
+        setRespostas(autoRespostas);
+        
+        // Processar e mostrar resultado
+        const scores = calcularSabotadores(autoRespostas);
+        
+        const topSabotadores = Object.entries(scores)
+          .sort(([,a], [,b]) => b - a)
+          .slice(0, 5)
+          .map(([key, score]) => {
+              const detalhes = getDicaSabotador(key);
+              return {
+                nome: getNomeSabotador(key),
+                pontuacao: score,
+                resumo: detalhes.resumo,
+                comoSuperar: detalhes.comoSuperar
+              };
+          });
+
+        const resultado = {
+          scores,
+          topSabotadores,
+          data: new Date().toISOString()
+        };
+        
+        localStorage.setItem('testeSabotadores', JSON.stringify(resultado));
+        setResultData(resultado);
+        setTestCompleted(true);
+      } else {
+        toast.error(`Erro no teste automatizado: ${result.message}`);
+        console.error('❌ Erros encontrados:', result.errors);
+      }
+    } catch (error) {
+      console.error('💥 Erro ao executar teste automatizado:', error);
+      toast.error('Erro inesperado no teste automatizado');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Buscar teste existente
@@ -655,15 +703,26 @@ export const TesteSabotadores: React.FC = () => {
               <Target className="h-6 w-6 text-instituto-orange" />
               Teste dos Sabotadores
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={runAutomatedTestHandler}
-              disabled={isSubmitting}
-              className="text-xs"
-            >
-              🤖 Teste Automatizado
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={executeAutomatedTest}
+                disabled={isSubmitting}
+                className="text-xs bg-green-50 hover:bg-green-100 border-green-200"
+              >
+                🤖 Executar Teste Completo
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={runAutomatedTestHandler}
+                disabled={isSubmitting}
+                className="text-xs bg-blue-50 hover:bg-blue-100 border-blue-200"
+              >
+                🔧 Teste Técnico
+              </Button>
+            </div>
           </CardTitle>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
