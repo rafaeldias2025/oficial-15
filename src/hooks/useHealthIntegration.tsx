@@ -3,6 +3,7 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { googleFitService, GoogleFitData } from '@/services/googleFitService';
+import { appleHealthService, AppleHealthData } from '@/services/appleHealthService';
 
 export interface HealthIntegrationConfig {
   appleHealthEnabled: boolean;
@@ -144,38 +145,52 @@ export const useHealthIntegration = () => {
 
   // Conectar com Apple Health
   const connectAppleHealth = useCallback(async () => {
-    if (!isAppleHealthAvailable()) {
-      toast({
-        title: 'Apple Health não disponível',
-        description: 'Este recurso está disponível apenas em dispositivos iOS com aplicativo nativo',
-        variant: 'destructive',
-      });
-      return false;
-    }
-
     setState(prev => ({ ...prev, isLoading: true }));
 
     try {
-      // Simulação de conexão com Apple Health
-      // Em um app real, isso seria feito através de bridge nativo
-      setTimeout(() => {
-        setState(prev => ({
-          ...prev,
-          isConnected: true,
-          isAuthorized: true,
-          isLoading: false,
-        }));
-        
-        saveUserConfig({ appleHealthEnabled: true });
-        
-        toast({
-          title: '🍎 Apple Health conectado',
-          description: 'Você pode agora sincronizar seus dados de saúde',
-        });
-      }, 2000);
+      // Verificar disponibilidade
+      const available = await appleHealthService.isAvailable();
+      if (!available) {
+        throw new Error('Apple Health não está disponível neste dispositivo');
+      }
 
+      // Solicitar autorização
+      const authResult = await appleHealthService.requestAuthorization();
+      if (!authResult.isAuthorized) {
+        throw new Error('Autorização negada pelo usuário');
+      }
+
+      // Buscar dados dos últimos 30 dias
+      const endDate = new Date();
+      const startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - 30);
+      
+      const healthData = await appleHealthService.getAllHealthData(startDate, endDate);
+      
+      // Salvar dados no Supabase
+      if (user?.id && healthData.length > 0) {
+        await appleHealthService.saveToSupabase(user.id, healthData);
+      }
+      
+      setState(prev => ({
+        ...prev,
+        isConnected: true,
+        isAuthorized: true,
+        isLoading: false,
+        lastSync: new Date(),
+      }));
+      
+      saveUserConfig({ appleHealthEnabled: true });
+      
+      toast({
+        title: '🍎 Apple Health conectado',
+        description: `Sincronizados ${healthData.length} registros de dados de saúde`,
+      });
+      
       return true;
     } catch (error) {
+      console.error('Erro na conexão com Apple Health:', error);
+      
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -184,13 +199,13 @@ export const useHealthIntegration = () => {
       
       toast({
         title: 'Erro na conexão',
-        description: 'Não foi possível conectar com Apple Health',
+        description: error.message || 'Não foi possível conectar com Apple Health',
         variant: 'destructive',
       });
       
-      return false;
+      throw error;
     }
-  }, [toast, saveUserConfig]);
+  }, [toast, saveUserConfig, user]);
 
   // Conectar com Google Fit
   const connectGoogleFit = useCallback(async (email: string) => {
@@ -263,70 +278,16 @@ export const useHealthIntegration = () => {
     try {
       if (!user) throw new Error('Usuário não logado');
 
-      // Buscar profile do usuário
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      // Buscar dados dos últimos 7 dias
+      const endDate = new Date();
+      const startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - 7);
 
-      if (!profile) throw new Error('Profile não encontrado');
-
-      // Simular dados do Apple Health
-      const simulatedHealthData = [
-        {
-          type: 'weight',
-          value: 70.5 + Math.random() * 5,
-          unit: 'kg',
-          timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        },
-        {
-          type: 'height',
-          value: 175,
-          unit: 'cm',
-          timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        },
-        {
-          type: 'steps',
-          value: 8000 + Math.random() * 4000,
-          unit: 'steps',
-          timestamp: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
-        },
-      ];
-
-      let recordsImported = 0;
-
-      // Processar dados de peso
-      const weightData = simulatedHealthData.find(d => d.type === 'weight');
-      if (weightData && state.config.dataTypes.weight) {
-        // Atualizar dados físicos
-        await supabase
-          .from('dados_fisicos_usuario')
-          .upsert({
-            user_id: profile.id,
-            peso_atual_kg: weightData.value,
-            nome_completo: user.user_metadata?.full_name || 'Usuário',
-            data_nascimento: '1990-01-01',
-            sexo: 'Masculino',
-            altura_cm: 175,
-            circunferencia_abdominal_cm: 90,
-            meta_peso_kg: weightData.value,
-            updated_at: new Date().toISOString(),
-          });
-
-        // Criar nova pesagem
-        await supabase
-          .from('pesagens')
-          .insert({
-            user_id: profile.id,
-            peso_kg: weightData.value,
-            data_medicao: weightData.timestamp.toISOString(),
-            origem_medicao: 'apple_health',
-            circunferencia_abdominal_cm: 90,
-            imc: weightData.value / (1.75 * 1.75),
-          });
-
-        recordsImported++;
+      const healthData = await appleHealthService.getAllHealthData(startDate, endDate);
+      
+      // Salvar no Supabase
+      if (healthData.length > 0) {
+        await appleHealthService.saveToSupabase(user.id, healthData);
       }
 
       setState(prev => ({
@@ -335,13 +296,31 @@ export const useHealthIntegration = () => {
         lastSync: new Date(),
       }));
 
+      toast({
+        title: '🔄 Sincronização concluída',
+        description: `${healthData.length} registros atualizados`,
+      });
+
       return {
         success: true,
-        recordsImported,
+        recordsImported: healthData.length,
         lastSyncDate: new Date(),
       };
     } catch (error) {
-      setState(prev => ({ ...prev, isLoading: false }));
+      console.error('Erro na sincronização:', error);
+      
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error.message,
+      }));
+
+      toast({
+        title: 'Erro na sincronização',
+        description: 'Não foi possível sincronizar com Apple Health',
+        variant: 'destructive',
+      });
+
       return {
         success: false,
         recordsImported: 0,
@@ -349,7 +328,7 @@ export const useHealthIntegration = () => {
         errors: [error.message],
       };
     }
-  }, [state.isAuthorized, state.config.dataTypes, user]);
+  }, [state.isAuthorized, toast, user]);
 
   // Sincronizar dados do Google Fit
   const syncGoogleFitData = useCallback(async (): Promise<HealthSyncResult> => {

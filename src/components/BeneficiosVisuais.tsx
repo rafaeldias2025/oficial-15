@@ -32,6 +32,7 @@ import { EvolucaoSemanal } from "./EvolucaoSemanal";
 import { Silhueta3D } from "./Silhueta3D";
 import { useHealthIntegration } from '@/hooks/useHealthIntegration';
 import { GoogleFitModal } from './GoogleFitModal';
+import { AppleHealthModal } from './AppleHealthModal';
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -71,6 +72,7 @@ export const BeneficiosVisuais: React.FC = () => {
   } = useHealthIntegration();
 
   const [showGoogleFitModal, setShowGoogleFitModal] = useState(false);
+  const [showAppleHealthModal, setShowAppleHealthModal] = useState(false);
 
   const getHealthIcon = () => {
     if (isIOS) return <Apple className="h-5 w-5" />;
@@ -84,7 +86,7 @@ export const BeneficiosVisuais: React.FC = () => {
   };
   const handleHealthConnection = () => {
     if (isIOS) {
-      connectAppleHealth();
+      setShowAppleHealthModal(true);
     } else {
       setShowGoogleFitModal(true);
     }
@@ -92,6 +94,10 @@ export const BeneficiosVisuais: React.FC = () => {
 
   const handleGoogleFitConnect = async (email: string) => {
     await connectGoogleFit(email);
+  };
+
+  const handleAppleHealthConnect = async () => {
+    await connectAppleHealth();
   };
 
   // Função centralizada para buscar e consolidar TODOS os dados
@@ -635,6 +641,15 @@ export const BeneficiosVisuais: React.FC = () => {
         isOpen={showGoogleFitModal}
         onClose={() => setShowGoogleFitModal(false)}
         onConnect={handleGoogleFitConnect}
+        isLoading={healthState.isLoading}
+        isConnected={healthState.isConnected}
+      />
+      
+      {/* Modal do Apple Health */}
+      <AppleHealthModal
+        isOpen={showAppleHealthModal}
+        onClose={() => setShowAppleHealthModal(false)}
+        onConnect={handleAppleHealthConnect}
         isLoading={healthState.isLoading}
         isConnected={healthState.isConnected}
       />
