@@ -37,7 +37,7 @@ export default {
 					DEFAULT: 'rgb(var(--accent))',
 					foreground: 'rgb(var(--foreground))'
 				},
-				// Sistema de cinzas moderno
+				// Sistema de cinzas com alto contraste
 				gray: {
 					50: 'rgb(var(--gray-50))',
 					100: 'rgb(var(--gray-100))',
@@ -50,7 +50,7 @@ export default {
 					800: 'rgb(var(--gray-800))',
 					900: 'rgb(var(--gray-900))',
 				},
-				// Cores de saúde modernas
+				// Cores de saúde com contraste aprimorado
 				health: {
 					primary: 'rgb(var(--health-primary))',
 					secondary: 'rgb(var(--health-secondary))',
@@ -59,7 +59,7 @@ export default {
 					warning: 'rgb(var(--health-warning))',
 					error: 'rgb(var(--health-error))',
 				},
-				// Tons de métricas
+				// Tons de métricas com melhor distinção
 				metric: {
 					excellent: 'rgb(var(--metric-excellent))',
 					good: 'rgb(var(--metric-good))',
@@ -67,7 +67,7 @@ export default {
 					poor: 'rgb(var(--metric-poor))',
 					critical: 'rgb(var(--metric-critical))',
 				},
-				// Badges e gamificação
+				// Badges e gamificação com cores distinguíveis
 				badge: {
 					bronze: 'rgb(var(--badge-bronze))',
 					silver: 'rgb(var(--badge-silver))',
@@ -102,6 +102,20 @@ export default {
 					'accent-foreground': 'rgb(var(--foreground))',
 					border: 'rgb(var(--border))',
 					ring: 'rgb(var(--ring))'
+				},
+				// Cores específicas para pessoas mais velhas
+				senior: {
+					primary: 'rgb(var(--primary))',
+					secondary: 'rgb(var(--secondary))',
+					accent: 'rgb(var(--accent))',
+					text: 'rgb(var(--foreground))',
+					background: 'rgb(var(--background))',
+					surface: 'rgb(var(--surface))',
+					border: 'rgb(var(--border))',
+					success: 'rgb(var(--health-success))',
+					warning: 'rgb(var(--health-warning))',
+					error: 'rgb(var(--health-error))',
+					info: 'rgb(var(--health-info))',
 				}
 			},
 			borderRadius: {
@@ -110,6 +124,10 @@ export default {
 				sm: 'calc(var(--radius) - 4px)',
 				xl: 'calc(var(--radius) + 4px)',
 				'2xl': 'calc(var(--radius) + 8px)',
+				// Bordas específicas para acessibilidade
+				'senior': '12px',
+				'senior-lg': '16px',
+				'senior-xl': '20px',
 			},
 			boxShadow: {
 				'sm': 'var(--shadow-sm)',
@@ -118,6 +136,10 @@ export default {
 				'xl': 'var(--shadow-xl)',
 				'2xl': 'var(--shadow-2xl)',
 				'glow': 'var(--shadow-glow)',
+				// Sombras específicas para pessoas mais velhas
+				'senior': 'var(--shadow-lg)',
+				'senior-xl': 'var(--shadow-xl)',
+				'senior-glow': 'var(--shadow-glow)',
 			},
 			backdropFilter: {
 				'glass': 'blur(10px)',
@@ -128,6 +150,8 @@ export default {
 				'gradient-secondary': 'var(--gradient-secondary)',
 				'gradient-surface': 'var(--gradient-surface)',
 				'gradient-glass': 'var(--gradient-glass)',
+				'gradient-health': 'var(--gradient-health)',
+				'gradient-wellness': 'var(--gradient-wellness)',
 			},
 			transitionDuration: {
 				'fast': 'var(--duration-fast)',
@@ -153,14 +177,42 @@ export default {
 				'7xl': '4.5rem',
 				'8xl': '6rem',
 				'9xl': '8rem',
+				// Tamanhos específicos para pessoas mais velhas
+				'senior-sm': '1rem',
+				'senior-base': '1.125rem',
+				'senior-lg': '1.25rem',
+				'senior-xl': '1.5rem',
+				'senior-2xl': '1.875rem',
+				'senior-3xl': '2.25rem',
 			},
 			spacing: {
 				'18': '4.5rem',
 				'88': '22rem',
 				'112': '28rem',
 				'128': '32rem',
+				// Espaçamentos específicos para acessibilidade
+				'senior-xs': '8px',
+				'senior-sm': '12px',
+				'senior-md': '16px',
+				'senior-lg': '24px',
+				'senior-xl': '32px',
+				'senior-2xl': '48px',
+				'senior-3xl': '64px',
+			},
+			minHeight: {
+				'touch-target': '48px',
+				'senior-button': '56px',
+				'senior-input': '48px',
+				'senior-card': '120px',
+			},
+			minWidth: {
+				'touch-target': '48px',
+				'senior-button': '120px',
 			},
 			animation: {
+				'gentle-float': 'gentle-float 4s ease-in-out infinite',
+				'gentle-pulse': 'gentle-pulse 3s ease-in-out infinite',
+				'gentle-slide-up': 'gentle-slide-up 0.6s ease-out',
 				'float': 'float 6s ease-in-out infinite',
 				'pulse-glow': 'pulse-glow 2s ease-in-out infinite alternate',
 				'slide-up': 'slide-up 0.5s ease-out',
@@ -170,6 +222,22 @@ export default {
 				'shimmer': 'shimmer 1.5s infinite',
 			},
 			keyframes: {
+				'gentle-float': {
+					'0%, 100%': { transform: 'translateY(0px)' },
+					'50%': { transform: 'translateY(-4px)' },
+				},
+				'gentle-pulse': {
+					'0%, 100%': { 
+						boxShadow: '0 0 20px rgb(var(--primary) / 0.15)'
+					},
+					'50%': { 
+						boxShadow: '0 0 30px rgb(var(--primary) / 0.25)'
+					},
+				},
+				'gentle-slide-up': {
+					'from': { transform: 'translateY(16px)', opacity: '0' },
+					'to': { transform: 'translateY(0)', opacity: '1' },
+				},
 				float: {
 					'0%, 100%': { transform: 'translateY(0px)' },
 					'50%': { transform: 'translateY(-20px)' },
@@ -209,8 +277,105 @@ export default {
 				'xs': '475px',
 				'3xl': '1600px',
 				'4xl': '1920px',
+				// Breakpoints específicos para acessibilidade
+				'senior-sm': '640px',
+				'senior-md': '768px',
+				'senior-lg': '1024px',
+				'senior-xl': '1280px',
+			},
+			// Configurações específicas para botões acessíveis
+			buttonSizing: {
+				'senior-sm': {
+					minHeight: '48px',
+					minWidth: '48px',
+					padding: '12px 16px',
+					fontSize: '1rem',
+				},
+				'senior-md': {
+					minHeight: '56px',
+					minWidth: '120px',
+					padding: '16px 24px',
+					fontSize: '1.125rem',
+				},
+				'senior-lg': {
+					minHeight: '64px',
+					minWidth: '140px',
+					padding: '20px 32px',
+					fontSize: '1.25rem',
+				},
+			},
+			// Configurações específicas para inputs acessíveis
+			inputSizing: {
+				'senior': {
+					minHeight: '48px',
+					padding: '12px 16px',
+					fontSize: '1rem',
+					borderWidth: '2px',
+				},
+			},
+			// Configurações específicas para cards acessíveis
+			cardSizing: {
+				'senior': {
+					minHeight: '120px',
+					padding: '24px',
+					borderRadius: '16px',
+					borderWidth: '2px',
+				},
 			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
+	// Configurações específicas para acessibilidade
+	safelist: [
+		// Classes que devem sempre estar disponíveis
+		'text-senior-primary',
+		'text-senior-secondary',
+		'text-senior-large',
+		'text-senior-xlarge',
+		'bg-senior-primary',
+		'bg-senior-secondary',
+		'border-senior-primary',
+		'border-senior-secondary',
+		'shadow-senior',
+		'shadow-senior-xl',
+		'rounded-senior',
+		'rounded-senior-lg',
+		'spacing-senior',
+		'spacing-senior-sm',
+		'spacing-senior-lg',
+		'gap-senior',
+		'gap-senior-sm',
+		'gap-senior-lg',
+		'min-touch-target',
+		'animation-gentle-float',
+		'animation-gentle-pulse',
+		'animation-gentle-slide-up',
+		// Classes para componentes específicos
+		'btn-primary-senior',
+		'btn-secondary-senior',
+		'senior-card',
+		'senior-badge',
+		'senior-progress',
+		'senior-progress-fill',
+		'senior-tooltip',
+		'senior-form-group',
+		'senior-form-label',
+		'senior-form-input',
+		'senior-alert-success',
+		'senior-alert-warning',
+		'senior-alert-error',
+		'senior-nav-item',
+		'senior-table',
+		'text-high-contrast',
+		'text-medium-contrast',
+		// Classes para estados
+		'hover:bg-senior-primary',
+		'hover:bg-senior-secondary',
+		'hover:text-senior-primary',
+		'hover:text-senior-secondary',
+		'focus:border-senior-primary',
+		'focus:ring-senior-primary',
+		'active:bg-senior-primary',
+		'active:bg-senior-secondary',
+	],
 } satisfies Config;

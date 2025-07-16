@@ -50,6 +50,44 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
+## ✨ Nova Funcionalidade: Integração com Apple Health & Google Fit
+
+### 🩺 Integração de Saúde em Tempo Real
+- **Sincronização automática** de dados de saúde do Apple Health (iOS) e Google Fit (Android/Web)
+- **Dados em tempo real** de peso, altura, passos, frequência cardíaca e composição corporal
+- **Interface intuitiva** na análise avançada para conectar e gerenciar integrações
+- **Configuração flexível** de tipos de dados e frequência de sincronização
+- **Privacidade e segurança** garantidas com criptografia e controle de acesso
+
+### 🎯 Como Usar
+1. **Acesse a Análise Avançada** no painel administrativo
+2. **Clique em "Conectar"** para conectar com Apple Health ou Google Fit
+3. **Configure os dados** que deseja sincronizar
+4. **Veja informações em tempo real** sendo atualizadas automaticamente
+
+### 📊 Dados Disponíveis
+- Peso e altura
+- Composição corporal (% gordura, massa muscular, água)
+- Atividade física (passos, calorias)
+- Frequência cardíaca
+- Dados de sono
+- Pressão arterial
+- Ingestão de água
+
+### 🔧 Implementação Técnica
+- Hook `useHealthIntegration` para gerenciar conexões
+- Componente `HealthIntegration` para interface completa
+- Simulação funcional pronta para APIs reais
+- Tabelas de banco de dados para armazenar dados de saúde
+
+### 📱 Suporte Multiplataforma
+- **iOS**: Apple Health (HealthKit) 
+- **Android**: Google Fit
+- **Web**: Google Fit API
+- **Detecção automática** de plataforma
+
+---
+
 ## What technologies are used for this project?
 
 This project is built with:
@@ -59,6 +97,9 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Apple HealthKit Integration
+- Google Fit API
+- Supabase (Database)
 
 ## How can I deploy this project?
 

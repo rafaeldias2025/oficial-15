@@ -112,14 +112,14 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <Link 
             to="/" 
-            className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors"
+            className="flex items-center gap-2 text-senior-primary hover:text-senior-primary/80 transition-colors text-senior-lg min-touch-target"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="hidden sm:inline">Voltar</span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+            className="lg:hidden p-2 rounded-senior hover:bg-senior-primary/20 transition-colors min-touch-target"
           >
             <X className="w-5 h-5 text-white" />
           </button>
@@ -144,10 +144,10 @@ const Dashboard = () => {
               }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-4 rounded-senior text-left transition-all duration-300 text-senior-lg min-touch-target ${
                 activeSection === item.id 
-                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg' 
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
+                  ? 'bg-senior-primary text-white shadow-senior-xl' 
+                  : 'text-white/90 hover:text-white hover:bg-senior-primary/20 hover:shadow-senior'
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -162,7 +162,7 @@ const Dashboard = () => {
         <Button
           onClick={signOut}
           variant="ghost"
-          className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
+          className="w-full justify-start text-white/90 hover:text-white hover:bg-senior-primary/20 text-senior-lg min-touch-target"
         >
           <LogOut className="w-5 h-5 mr-3" />
           Sair
@@ -172,17 +172,17 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-senior-primary via-senior-primary/90 to-senior-primary/95">
       {/* Mobile Header */}
-      <div className="lg:hidden bg-white/5 backdrop-blur-sm border-b border-white/10 p-4">
+      <div className="lg:hidden bg-senior-primary/20 backdrop-blur-sm border-b border-white/10 spacing-senior-sm">
         <div className="flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            className="p-2 rounded-senior hover:bg-senior-primary/20 transition-colors min-touch-target"
           >
             <Menu className="w-6 h-6 text-white" />
           </button>
-          <h1 className="text-lg font-semibold text-white">
+          <h1 className="text-senior-xl font-semibold text-white">
             {menuItems.find(item => item.id === activeSection)?.label || 'Dashboard'}
           </h1>
           <div className="w-10" /> {/* Spacer */}
@@ -191,7 +191,7 @@ const Dashboard = () => {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:flex lg:w-80 lg:flex-col bg-white/5 backdrop-blur-sm border-r border-white/10">
+        <div className="hidden lg:flex lg:w-80 lg:flex-col bg-senior-primary/20 backdrop-blur-sm border-r border-white/10">
           <SidebarContent />
         </div>
 
@@ -210,8 +210,8 @@ const Dashboard = () => {
                 initial={{ x: -280 }}
                 animate={{ x: 0 }}
                 exit={{ x: -280 }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="lg:hidden fixed left-0 top-0 bottom-0 w-80 bg-slate-900/95 backdrop-blur-sm border-r border-white/10 z-50"
+                                  transition={{ type: "spring", damping: 30, stiffness: 150 }}
+                className="lg:hidden fixed left-0 top-0 bottom-0 w-80 bg-senior-primary/95 backdrop-blur-sm border-r border-white/10 z-50"
               >
                 <SidebarContent />
               </motion.div>
@@ -221,12 +221,12 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <div className="flex-1 min-h-screen">
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className="spacing-senior-sm sm:spacing-senior md:spacing-senior-lg">
             <motion.div
               key={activeSection}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.6 }}
               className="w-full"
             >
               {renderContent()}

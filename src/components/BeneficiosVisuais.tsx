@@ -16,7 +16,11 @@ import {
   Ruler,
   User,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  Apple,
+  Chrome,
+  Smartphone
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDadosSaude } from "@/hooks/useDadosSaude";
@@ -26,6 +30,8 @@ import { BluetoothScaleConnection } from "./BluetoothScaleConnection";
 import { RiscoCardiometabolico } from "./RiscoCardiometabolico";
 import { EvolucaoSemanal } from "./EvolucaoSemanal";
 import { Silhueta3D } from "./Silhueta3D";
+import { useHealthIntegration } from '@/hooks/useHealthIntegration';
+import { GoogleFitModal } from './GoogleFitModal';
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -55,6 +61,38 @@ export const BeneficiosVisuais: React.FC = () => {
     dadosFisicos: null,
     isLoading: true
   });
+
+  const {
+    state: healthState,
+    isIOS,
+    isAndroid,
+    connectAppleHealth,
+    connectGoogleFit
+  } = useHealthIntegration();
+
+  const [showGoogleFitModal, setShowGoogleFitModal] = useState(false);
+
+  const getHealthIcon = () => {
+    if (isIOS) return <Apple className="h-5 w-5" />;
+    if (isAndroid) return <Chrome className="h-5 w-5" />;
+    return <Smartphone className="h-5 w-5" />;
+  };
+  const getHealthPlatform = () => {
+    if (isIOS) return 'Apple Health';
+    if (isAndroid) return 'Google Fit';
+    return 'Dados de Saúde';
+  };
+  const handleHealthConnection = () => {
+    if (isIOS) {
+      connectAppleHealth();
+    } else {
+      setShowGoogleFitModal(true);
+    }
+  };
+
+  const handleGoogleFitConnect = async (email: string) => {
+    await connectGoogleFit(email);
+  };
 
   // Função centralizada para buscar e consolidar TODOS os dados
   const atualizarTodosOsDados = React.useCallback(async () => {
@@ -397,7 +435,7 @@ export const BeneficiosVisuais: React.FC = () => {
                   <CardContent className="space-y-4">
                     <BluetoothScaleConnection
                       trigger={
-                        <Button className="w-full bg-instituto-purple hover:bg-instituto-purple/80">
+                        <Button className="w-full bg-instituto-purple hover:bg-instituto-purple/80 text-white shadow-lg" size="lg">
                           ⚖️ Balança Inteligente
                         </Button>
                       }
@@ -407,6 +445,21 @@ export const BeneficiosVisuais: React.FC = () => {
                         atualizarTodosOsDados();
                       }}
                     />
+                    {/* Botão de integração de saúde - mesmo padrão da balança */}
+                    <Button
+                      onClick={handleHealthConnection}
+                      disabled={healthState.isConnected || healthState.isLoading}
+                      className="w-full bg-instituto-purple hover:bg-instituto-purple/80 text-white shadow-lg mt-2"
+                      size="lg"
+                    >
+                      {healthState.isLoading ? (
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      ) : (
+                        <>
+                          🩺 Saúde Inteligente
+                        </>
+                      )}
+                    </Button>
                     <Button 
                       onClick={() => {
                         console.log('🔄 Botão atualizar clicado, refazendo todos os cálculos...');
@@ -576,6 +629,15 @@ export const BeneficiosVisuais: React.FC = () => {
 
       {/* Botão Flutuante */}
       {dadosSaude && <AtualizarMedidasModal />}
+      
+      {/* Modal do Google Fit */}
+      <GoogleFitModal
+        isOpen={showGoogleFitModal}
+        onClose={() => setShowGoogleFitModal(false)}
+        onConnect={handleGoogleFitConnect}
+        isLoading={healthState.isLoading}
+        isConnected={healthState.isConnected}
+      />
     </div>
   );
 };
