@@ -61,11 +61,28 @@ const Auth = () => {
       setEmailError('E-mail é obrigatório');
       return false;
     }
+    
+    const trimmedEmail = email.trim().toLowerCase();
+    
+    // Verificar formato básico
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(trimmedEmail)) {
       setEmailError('Por favor, digite um e-mail válido (exemplo: nome@email.com)');
       return false;
     }
+    
+    // Verificar comprimento
+    if (trimmedEmail.length > 254) {
+      setEmailError('E-mail muito longo. Use no máximo 254 caracteres.');
+      return false;
+    }
+    
+    // Verificar caracteres especiais problemáticos
+    if (trimmedEmail.includes('..') || trimmedEmail.startsWith('.') || trimmedEmail.endsWith('.')) {
+      setEmailError('E-mail contém pontos consecutivos ou em posições inválidas.');
+      return false;
+    }
+    
     setEmailError('');
     return true;
   };
@@ -178,6 +195,18 @@ const Auth = () => {
       return;
     }
 
+    // Validar formato do celular (básico)
+    const celularLimpo = celular.replace(/\D/g, '');
+    if (celularLimpo.length < 10 || celularLimpo.length > 11) {
+      toast({
+        title: "❌ Celular inválido",
+        description: "Digite um celular válido com DDD (10 ou 11 dígitos).",
+        variant: "destructive"
+      });
+      setLoading(false);
+      return;
+    }
+
     if (!dataNascimento.trim()) {
       toast({
         title: "❌ Data de nascimento obrigatória",
@@ -217,7 +246,21 @@ const Auth = () => {
 
     if (error) {
       let errorMessage = "Erro ao criar conta. Tente novamente.";
-      if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+      
+      // Tratar erros específicos do sistema
+      if (error.message === 'Nome completo é obrigatório') {
+        errorMessage = "❌ Nome completo é obrigatório";
+      } else if (error.message === 'Celular é obrigatório') {
+        errorMessage = "❌ Celular é obrigatório";
+      } else if (error.message === 'Data de nascimento é obrigatória') {
+        errorMessage = "❌ Data de nascimento é obrigatória";
+      } else if (error.message === 'Sexo é obrigatório') {
+        errorMessage = "❌ Sexo é obrigatório";
+      } else if (error.message === 'Altura deve estar entre 100 e 250 cm') {
+        errorMessage = "❌ Altura deve estar entre 100 e 250 cm";
+      } else if (error.message === 'E-mail já registrado. Tente outro.') {
+        errorMessage = "📧 E-mail já registrado. Tente outro.";
+      } else if (error.message.includes('already registered') || error.message.includes('User already registered')) {
         errorMessage = "📧 Este e-mail já está cadastrado! Tente fazer login ou use outro e-mail.";
       } else if (error.message.includes('Password should be')) {
         errorMessage = "🔒 A senha deve ter pelo menos 6 caracteres.";
@@ -227,7 +270,17 @@ const Auth = () => {
         errorMessage = "🔒 Senha inválida. Use pelo menos 6 caracteres.";
       } else if (error.message.includes('Unable to validate email address')) {
         errorMessage = "📧 Não foi possível validar o e-mail. Verifique se está correto.";
+      } else if (error.message.includes('email rate limit exceeded')) {
+        errorMessage = "⏳ Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.";
+      } else if (error.message.includes('password')) {
+        errorMessage = "🔒 Erro relacionado à senha. Verifique se atende aos requisitos.";
+      } else if (error.message.includes('email')) {
+        errorMessage = "📧 Erro relacionado ao e-mail. Verifique se está correto.";
+      } else if (error.message.includes('network')) {
+        errorMessage = "🌐 Erro de conexão. Verifique sua internet e tente novamente.";
       }
+
+      console.error('❌ Erro detalhado no cadastro:', error);
 
       toast({
         title: "❌ Erro no Cadastro",
@@ -238,9 +291,13 @@ const Auth = () => {
       localStorage.setItem('userType', 'cliente');
       toast({
         title: "🎉 Conta criada com sucesso!",
-        description: "Redirecionando para o dashboard..."
+        description: "Seus dados foram salvos. Redirecionando para o dashboard..."
       });
-      navigate('/dashboard');
+      
+      // Pequeno delay para mostrar a mensagem de sucesso antes de redirecionar
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
     }
     setLoading(false);
   };

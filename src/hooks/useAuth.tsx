@@ -43,132 +43,191 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, fullName?: string, celular?: string, dataNascimento?: string, sexo?: string, altura?: number) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
     try {
-      // 1. Criar usuário no auth
+      // 1. Validar campos obrigatórios
+      if (!fullName?.trim()) {
+        return { error: new Error('Nome completo é obrigatório') };
+      }
+      if (!celular?.trim()) {
+        return { error: new Error('Celular é obrigatório') };
+      }
+      if (!dataNascimento?.trim()) {
+        return { error: new Error('Data de nascimento é obrigatória') };
+      }
+      if (!sexo?.trim()) {
+        return { error: new Error('Sexo é obrigatório') };
+      }
+      if (!altura || altura < 100 || altura > 250) {
+        return { error: new Error('Altura deve estar entre 100 e 250 cm') };
+      }
+
+      // 2. Verificar se email já existe na tabela profiles
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email.toLowerCase().trim())
+        .maybeSingle();
+
+      if (existingProfile) {
+        return { error: new Error('E-mail já registrado. Tente outro.') };
+      }
+
+      const redirectUrl = `${window.location.origin}/`;
+      
+      // 3. Criar usuário no auth do Supabase
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: email.toLowerCase().trim(),
         password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: fullName || '',
-            celular: celular || '',
-            data_nascimento: dataNascimento || '',
-            sexo: sexo || '',
-            altura_cm: altura?.toString() || '',
+            full_name: fullName.trim(),
+            celular: celular.trim(),
+            data_nascimento: dataNascimento,
+            sexo: sexo,
+            altura_cm: altura.toString(),
           },
         },
       });
 
       if (authError) {
+        console.error('❌ Erro no auth.signUp:', authError);
         return { error: authError };
       }
 
-      // 2. Se o usuário foi criado com sucesso, criar perfil completo
-      if (authData.user) {
-        console.log('🔄 Usuário criado no auth, iniciando criação do perfil completo...');
-        
-        // Aguardar um pouco para garantir que o trigger criou o profile
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        console.log('📊 Dados para perfil completo:', {
-          user_id: authData.user.id,
-          full_name: fullName,
-          celular,
-          data_nascimento: dataNascimento,
-          sexo,
-          altura
-        });
-        
-        const { data: profileResult, error: profileError } = await supabase.rpc(
-          'create_complete_user_profile',
-          {
-            p_user_id: authData.user.id,
-            p_full_name: fullName || 'Usuário',
-            p_celular: celular || '',
-            p_data_nascimento: dataNascimento ? new Date(dataNascimento).toISOString().split('T')[0] : null,
-            p_sexo: sexo || 'outro',
-            p_altura_cm: altura ? parseInt(altura.toString()) : 170
-          }
-        );
+      if (!authData.user) {
+        return { error: new Error('Falha ao criar usuário') };
+      }
 
-        if (profileError) {
-          console.error('❌ Erro ao criar perfil completo:', profileError);
-          
-          // Sistema de fallback robusto
-          try {
-            console.log('🔄 Iniciando fallback manual...');
-            
-            // Aguardar mais um pouco e tentar novamente
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('user_id', authData.user.id)
-              .single();
+      console.log('✅ Usuário criado no auth:', authData.user.id);
 
-            if (profile?.id) {
-              console.log('✅ Profile encontrado, atualizando dados...');
-              
-              // Atualizar profile
-              await supabase
-                .from('profiles')
-                .update({
-                  full_name: fullName || 'Usuário',
-                  celular: celular || '',
-                  data_nascimento: dataNascimento ? new Date(dataNascimento).toISOString().split('T')[0] : null,
-                  sexo: sexo || 'outro',
-                  altura_cm: altura ? parseInt(altura.toString()) : 170
-                })
-                .eq('id', profile.id);
+      // 4. Aguardar trigger criar o profile básico
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-              // Criar dados físicos
-              await supabase
-                .from('dados_fisicos_usuario')
-                .upsert({
-                  user_id: profile.id,
-                  nome_completo: fullName || 'Usuário',
-                  altura_cm: altura ? parseInt(altura.toString()) : 170,
-                  sexo: sexo || 'outro',
-                  data_nascimento: dataNascimento ? new Date(dataNascimento).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                  peso_atual_kg: 70,
-                  circunferencia_abdominal_cm: 90,
-                  meta_peso_kg: 70
-                });
-
-              // Criar user_points inicial
-              await supabase
-                .from('user_points')
-                .upsert({
-                  user_id: profile.id,
-                  total_points: 0,
-                  daily_points: 0,
-                  weekly_points: 0,
-                  monthly_points: 0,
-                  current_streak: 0,
-                  best_streak: 0,
-                  completed_challenges: 0,
-                  last_activity_date: new Date().toISOString().split('T')[0]
-                });
-
-              console.log('✅ Fallback concluído com sucesso');
-            }
-          } catch (fallbackError) {
-            console.error('❌ Erro no fallback:', fallbackError);
-          }
-        } else {
-          console.log('✅ Perfil completo criado com sucesso:', profileResult);
+      // 5. Usar sistema de cadastro completo com stored procedure
+      console.log('🔄 Iniciando cadastro completo com stored procedure...');
+      
+      const { data: registrationResult, error: registrationError } = await supabase.rpc(
+        'create_complete_user_registration',
+        {
+          p_user_id: authData.user.id,
+          p_full_name: fullName.trim(),
+          p_email: email.toLowerCase().trim(),
+          p_data_nascimento: dataNascimento,
+          p_sexo: sexo,
+          p_altura_cm: altura,
+          p_peso_atual_kg: 70.0, // Peso inicial padrão
+          p_circunferencia_abdominal_cm: 90.0, // Circunferência inicial padrão
+          p_celular: celular.trim(),
+          p_meta_peso_kg: 70.0 // Meta inicial igual ao peso
         }
+      );
+
+      if (registrationError) {
+        console.error('❌ Erro na stored procedure:', registrationError);
+        
+        // Sistema de fallback manual
+        try {
+          console.log('🔄 Tentando fallback manual...');
+          
+          // Aguardar um pouco mais
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Buscar profile criado pelo trigger
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', authData.user.id)
+            .single();
+
+          if (profileError || !profile) {
+            throw new Error('Profile não criado pelo trigger');
+          }
+
+          console.log('✅ Profile encontrado:', profile.id);
+
+          // Atualizar dados do profile
+          await supabase
+            .from('profiles')
+            .update({
+              full_name: fullName.trim(),
+              celular: celular.trim(),
+              data_nascimento: dataNascimento,
+              sexo: sexo,
+              altura_cm: altura,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', profile.id);
+
+          // Criar dados físicos completos
+          await supabase
+            .from('dados_fisicos_usuario')
+            .insert({
+              user_id: profile.id,
+              nome_completo: fullName.trim(),
+              data_nascimento: dataNascimento,
+              sexo: sexo,
+              altura_cm: altura,
+              peso_atual_kg: 70.0,
+              circunferencia_abdominal_cm: 90.0,
+              meta_peso_kg: 70.0
+            });
+
+          // Criar dados de saúde
+          await supabase
+            .from('dados_saude_usuario')
+            .insert({
+              user_id: profile.id,
+              peso_atual_kg: 70.0,
+              altura_cm: altura,
+              circunferencia_abdominal_cm: 90.0,
+              meta_peso_kg: 70.0
+            });
+
+          // Criar primeira pesagem
+          await supabase
+            .from('pesagens')
+            .insert({
+              user_id: profile.id,
+              peso_kg: 70.0,
+              circunferencia_abdominal_cm: 90.0,
+              data_medicao: new Date().toISOString(),
+              origem_medicao: 'cadastro_inicial'
+            });
+
+          // Criar pontos iniciais (equivalente ao ranking)
+          await supabase
+            .from('user_points')
+            .insert({
+              user_id: profile.id,
+              total_points: 0,
+              daily_points: 0,
+              weekly_points: 0,
+              monthly_points: 0,
+              current_streak: 0,
+              best_streak: 0,
+              completed_challenges: 0,
+              last_activity_date: new Date().toISOString().split('T')[0]
+            });
+
+          console.log('✅ Fallback manual concluído com sucesso');
+          
+        } catch (fallbackError) {
+          console.error('❌ Erro no fallback manual:', fallbackError);
+          return { error: new Error('Erro ao completar cadastro. Tente novamente.') };
+        }
+      } else {
+        console.log('✅ Cadastro completo realizado via stored procedure:', registrationResult);
       }
 
       return { error: null };
       
     } catch (error) {
-      console.error('Erro geral no signUp:', error);
-      return { error };
+      console.error('❌ Erro geral no signUp:', error);
+      if (error instanceof Error) {
+        return { error };
+      }
+      return { error: new Error('Erro inesperado no cadastro. Tente novamente.') };
     }
   };
 
