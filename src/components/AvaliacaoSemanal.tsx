@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { format, startOfWeek, subWeeks, addWeeks } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowLeft, ArrowRight, Save } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, TestTube } from 'lucide-react';
+import { runWeeklyEvaluationTest } from "@/utils/avaliacaoSemanalAutoTest";
 
 interface RatingRowProps {
   label: string;
@@ -54,6 +55,61 @@ function AvaliacaoSemanal() {
         }));
     };
     
+    // Função para executar teste automatizado
+    const executeAutomatedTest = async () => {
+      console.log('🚀 Iniciando teste automatizado da Avaliação Semanal...');
+      setIsLoading(true);
+      
+      try {
+        const result = await runWeeklyEvaluationTest();
+        console.log('📊 Resultado do teste:', result);
+        
+        if (result.success) {
+          // Simular preenchimento do formulário com dados do teste
+          const mockData = {
+            aprendizado_semana: {
+              melhor_acontecimento: "Consegui manter minha dieta equilibrada durante toda a semana.",
+              maior_desafio: "Momentos de ansiedade que me levaram a comer mais.",
+              conselho_mentor: "Continue persistindo, você está no caminho certo!",
+              maior_aprendizado_sabotador: "Percebi que sou muito crítico comigo mesmo.",
+              momento_percebi_sabotando: "Quando comecei a me comparar excessivamente com outros.",
+              nome_semana: "Semana do Autoconhecimento",
+              relacao_ultima_semana: "Me sinto orgulhoso(a) dos progressos conquistados."
+            },
+            desempenho_semanal: {
+              saude_alimentacao_objetivos: Math.floor(Math.random() * 5) + 1,
+              saude_recuperacao_fisica: Math.floor(Math.random() * 5) + 1,
+              saude_bebi_agua: Math.floor(Math.random() * 5) + 1,
+              saude_mais_energia: Math.floor(Math.random() * 5) + 1,
+              saude_raspei_lingua: Math.floor(Math.random() * 5) + 1,
+              presenca_focado_planejei: Math.floor(Math.random() * 5) + 1,
+              presenca_atitudes_intencionais: Math.floor(Math.random() * 5) + 1,
+              presenca_atencao_alimentacao: Math.floor(Math.random() * 5) + 1,
+              presenca_clareza_objetivos: Math.floor(Math.random() * 5) + 1,
+              presenca_disciplina_consistencia: Math.floor(Math.random() * 5) + 1,
+              fisico_fui_academia: Math.floor(Math.random() * 5) + 1,
+              fisico_caminhada_melhor: Math.floor(Math.random() * 5) + 1,
+              fisico_mobilidade: Math.floor(Math.random() * 5) + 1,
+              fisico_sono_qualidade: Math.floor(Math.random() * 5) + 1,
+              fisico_condicionamento_aumentou: Math.floor(Math.random() * 5) + 1,
+              profissional_li_livro: Math.floor(Math.random() * 5) + 1,
+              profissional_fiz_mais_combinado: Math.floor(Math.random() * 5) + 1,
+              profissional_ajudei_alguem: Math.floor(Math.random() * 5) + 1,
+              profissional_melhorei_trabalho: Math.floor(Math.random() * 5) + 1,
+              profissional_assisti_podcast: Math.floor(Math.random() * 5) + 1
+            },
+            objetivos_proxima_semana: "Focar em manter a consistência na alimentação e aumentar a frequência dos exercícios."
+          };
+          
+          setFormData(mockData);
+        }
+      } catch (error) {
+        console.error('💥 Erro ao executar teste automatizado:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
@@ -69,6 +125,21 @@ function AvaliacaoSemanal() {
             <div className="max-w-4xl mx-auto">
                 <Card className="mb-6">
                     <CardHeader className="text-center">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={executeAutomatedTest}
+                                    disabled={isLoading}
+                                    className="text-xs bg-green-50 hover:bg-green-100 border-green-200"
+                                >
+                                    <TestTube className="h-3 w-3 mr-1" />
+                                    🤖 Teste Completo
+                                </Button>
+                            </div>
+                            <div></div>
+                        </div>
                         <CardTitle className="text-2xl md:text-3xl font-bold">Avaliação Semanal</CardTitle>
                         <CardDescription>Reflita sobre sua semana para impulsionar seu progresso.</CardDescription>
                     </CardHeader>
