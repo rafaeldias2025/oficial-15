@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -53,7 +53,7 @@ export const HealthDashboard: React.FC<HealthDashboardProps> = ({
     }
   }, [user]);
 
-  const carregarDadosCompletos = async () => {
+  const carregarDadosCompletos = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -116,7 +116,7 @@ export const HealthDashboard: React.FC<HealthDashboardProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   // Calcular idade cronológica
   const idadeCronologica = React.useMemo(() => {

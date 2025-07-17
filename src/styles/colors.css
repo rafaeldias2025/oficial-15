@@ -1,0 +1,119 @@
+/* SISTEMA DE CORES DEFINITIVO - JORNADA DOS SONHOS */
+
+:root {
+  /* === CORES PRIMÁRIAS === */
+  --primary: #2563eb;        /* Azul principal */
+  --primary-hover: #1d4ed8;  /* Azul hover */
+  --primary-light: #dbeafe; /* Azul claro */
+  --primary-dark: #1e40af;  /* Azul escuro */
+  
+  /* === CORES SECUNDÁRIAS === */
+  --secondary: #10b981;      /* Verde */
+  --secondary-hover: #059669;
+  --secondary-light: #d1fae5;
+  
+  /* === CORES DE FUNDO === */
+  --bg-primary: #ffffff;     /* Branco */
+  --bg-secondary: #f8fafc;   /* Cinza muito claro */
+  --bg-tertiary: #f1f5f9;    /* Cinza claro */
+  --bg-quaternary: #e2e8f0;  /* Cinza médio */
+  
+  /* === CORES DE TEXTO === */
+  --text-primary: #0f172a;   /* Preto */
+  --text-secondary: #475569; /* Cinza escuro */
+  --text-muted: #94a3b8;     /* Cinza médio */
+  --text-light: #cbd5e1;     /* Cinza claro */
+  
+  /* === CORES DE STATUS === */
+  --success: #10b981;        /* Verde sucesso */
+  --success-light: #d1fae5;
+  --warning: #f59e0b;        /* Amarelo aviso */
+  --warning-light: #fed7aa;
+  --error: #ef4444;          /* Vermelho erro */
+  --error-light: #fecaca;
+  --info: #3b82f6;           /* Azul info */
+  --info-light: #dbeafe;
+  
+  /* === CORES DE MÉTRICAS === */
+  --metric-steps: #3b82f6;     /* Azul para passos */
+  --metric-steps-light: #dbeafe;
+  --metric-steps-border: #93c5fd;
+  
+  --metric-heart: #ef4444;     /* Vermelho para coração */
+  --metric-heart-light: #fecaca;
+  --metric-heart-border: #fca5a5;
+  
+  --metric-calories: #f59e0b;  /* Laranja para calorias */
+  --metric-calories-light: #fed7aa;
+  --metric-calories-border: #fcd34d;
+  
+  --metric-sleep: #8b5cf6;     /* Roxo para sono */
+  --metric-sleep-light: #e9d5ff;
+  --metric-sleep-border: #c4b5fd;
+  
+  --metric-active: #10b981;    /* Verde para ativo */
+  --metric-active-light: #d1fae5;
+  --metric-active-border: #86efac;
+  
+  --metric-distance: #6366f1;  /* Índigo para distância */
+  --metric-distance-light: #e0e7ff;
+  --metric-distance-border: #a5b4fc;
+  
+  /* === BORDAS E SOMBRAS === */
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --border-medium: #cbd5e1;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  
+  /* === GRADIENTES === */
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  --gradient-secondary: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  --gradient-bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  
+  /* === TRANSIÇÕES === */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+  
+  /* === RAIOS DE BORDA === */
+  --radius-sm: 0.375rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* === CLASSES UTILITÁRIAS === */
+.bg-gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.bg-gradient-secondary {
+  background: var(--gradient-secondary);
+}
+
+.bg-gradient-bg {
+  background: var(--gradient-bg);
+}
+
+.shadow-custom {
+  box-shadow: var(--shadow);
+}
+
+.shadow-custom-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.transition-custom {
+  transition: all var(--transition-normal);
+}
+
+.border-custom {
+  border: 1px solid var(--border);
+}

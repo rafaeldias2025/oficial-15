@@ -8,6 +8,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName?: string, celular?: string, dataNascimento?: string, sexo?: string, altura?: number) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  isLoading: boolean;
+  isInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -15,24 +17,72 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener
+    let isMounted = true;
+    
+    // Set up auth state listener com cleanup melhorado
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      async (event, session) => {
+        if (!isMounted) return;
+        
+        console.log('Auth state changed:', event, session?.user?.id);
+        
+        try {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          // Salvar estado no localStorage para persistência offline
+          if (session?.user) {
+            localStorage.setItem('auth_user_id', session.user.id);
+          } else {
+            localStorage.removeItem('auth_user_id');
+          }
+        } catch (error) {
+          console.error('Error handling auth state change:', error);
+        } finally {
+          if (!isInitialized) {
+            setIsInitialized(true);
+            setIsLoading(false);
+          }
+        }
       }
     );
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
+    // Get initial session com timeout
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+          return;
+        }
 
-    return () => subscription.unsubscribe();
-  }, []);
+        if (isMounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
+      } finally {
+        if (isMounted && !isInitialized) {
+          setIsInitialized(true);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    getInitialSession();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [isInitialized]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -233,10 +283,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      setIsLoading(true);
+      
       // Limpar todos os dados do localStorage relacionados ao usuário
       if (user) {
-        localStorage.removeItem(`physical_data_complete_${user.id}`);
-        // Limpar outros dados em cache se necessário
+        const userCacheKeys = [
+          `physical_data_complete_${user.id}`,
+          `user_progress_${user.id}`,
+          `health_data_${user.id}`,
+          `auth_user_id`
+        ];
+        
+        userCacheKeys.forEach(key => {
+          localStorage.removeItem(key);
+        });
+        
+        // Limpar outros dados em cache que contenham o user ID
         Object.keys(localStorage).forEach(key => {
           if (key.includes(user.id)) {
             localStorage.removeItem(key);
@@ -244,22 +306,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
       
-      // Fazer logout no Supabase
-      await supabase.auth.signOut();
+      // Fazer logout no Supabase com timeout
+      const logoutPromise = supabase.auth.signOut();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Logout timeout')), 10000)
+      );
       
-      // Limpar estado local
+      try {
+        await Promise.race([logoutPromise, timeoutPromise]);
+      } catch (logoutError) {
+        console.warn('Logout may have timed out, proceeding with local cleanup:', logoutError);
+      }
+      
+      // Limpar estado local (sempre executar mesmo se logout falhar)
       setUser(null);
       setSession(null);
       
-      // Redirecionar para página inicial (se necessário)
-      window.location.href = '/';
+      // Redirecionar para página inicial com small delay para UX
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
       
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
-      // Mesmo com erro, limpar estado local
+      // Mesmo com erro, limpar estado local para evitar estados inconsistentes
       setUser(null);
       setSession(null);
-      window.location.href = '/';
+      
+      // Force redirect even on error
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -270,6 +349,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn,
       signUp,
       signOut,
+      isLoading,
+      isInitialized,
     }}>
       {children}
     </AuthContext.Provider>

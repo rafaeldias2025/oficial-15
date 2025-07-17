@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -14,16 +14,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-// Componente de comparação rápida
-const QuickComparison: React.FC<{ current: any; previous: any }> = ({ current, previous }) => {
-  const getChange = (currentVal: number, previousVal: number) => {
+// Componente de comparação rápida memoizado
+const QuickComparison: React.FC<{ current: any; previous: any }> = React.memo(({ current, previous }) => {
+  const getChange = useCallback((currentVal: number, previousVal: number) => {
     const diff = currentVal - previousVal;
     return {
       value: diff,
       positive: diff > 0,
       percentage: ((Math.abs(diff) / previousVal) * 100).toFixed(1)
     };
-  };
+  }, []);
 
   const weightChange = getChange(current.peso_kg, previous.peso_kg);
   const imcChange = getChange(current.imc || 0, previous.imc || 0);
@@ -51,7 +51,7 @@ const QuickComparison: React.FC<{ current: any; previous: any }> = ({ current, p
       </div>
     </div>
   );
-};
+});
 
 // Componente de metas e progresso
 const GoalsProgress: React.FC<{ data: any; target: number }> = ({ data, target }) => {

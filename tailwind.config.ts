@@ -60,13 +60,22 @@ export default {
 					200: '#fad294',
 					300: '#f7b05c',
 					400: '#f39632',
-					500: '#ee7318', // Cor principal laranja
+					500: '#E76F51', // Cor principal accent
 					600: '#dc590e',
 					700: '#b6420f',
 					800: '#923515',
 					900: '#782d14',
 					950: '#41140a'
 				},
+				// Nova paleta de cores do projeto
+				'projeto-accent': '#E76F51',
+				'projeto-highlight': '#6A7F65',
+				'projeto-bg': '#FFFFFF',
+				'projeto-text': '#333333',
+				'projeto-card': '#F5F2EF',
+				// Manter compatibilidade com classes existentes
+				'instituto-orange': '#E76F51',
+				'instituto-purple': '#6A7F65',
 				wellness: {
 					50: '#f0fdf4',
 					100: '#dcfce7',

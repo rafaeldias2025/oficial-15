@@ -1,0 +1,197 @@
+/* 🎨 PALETA DE CORES DO PROJETO - INSTITUTO DOS SONHOS */
+
+:root {
+  /* Cores principais do projeto */
+  --color-bg: #FFFFFF;
+  --color-text: #333333;
+  --color-accent: #E76F51;
+  --color-highlight: #6A7F65;
+  --color-card-bg: #F5F2EF;
+  
+  /* Variações das cores principais */
+  --color-accent-light: #f0896f;
+  --color-accent-dark: #d4623f;
+  --color-highlight-light: #7d9276;
+  --color-highlight-dark: #5a6b55;
+  
+  /* Cores de estado */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* Cores neutras baseadas no texto principal */
+  --color-gray-50: #f9f9f9;
+  --color-gray-100: #f1f1f1;
+  --color-gray-200: #e4e4e4;
+  --color-gray-300: #d1d1d1;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: var(--color-text);
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+}
+
+/* 🎯 CLASSES UTILITÁRIAS */
+
+/* Fundos */
+.bg-projeto-primary { background-color: var(--color-bg); }
+.bg-projeto-card { background-color: var(--color-card-bg); }
+.bg-projeto-accent { background-color: var(--color-accent); }
+.bg-projeto-highlight { background-color: var(--color-highlight); }
+
+/* Textos */
+.text-projeto-primary { color: var(--color-text); }
+.text-projeto-accent { color: var(--color-accent); }
+.text-projeto-highlight { color: var(--color-highlight); }
+
+/* Bordas */
+.border-projeto-accent { border-color: var(--color-accent); }
+.border-projeto-highlight { border-color: var(--color-highlight); }
+
+/* Efeitos hover */
+.hover-projeto-accent:hover { 
+  background-color: var(--color-accent-dark); 
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+.hover-projeto-highlight:hover { 
+  background-color: var(--color-highlight-dark); 
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* 🎨 COMPONENTES ESTILIZADOS */
+
+/* Botões com nova paleta */
+.btn-projeto-primary {
+  background-color: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-projeto-primary:hover {
+  background-color: var(--color-accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 111, 81, 0.3);
+}
+
+.btn-projeto-secondary {
+  background-color: var(--color-highlight);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-projeto-secondary:hover {
+  background-color: var(--color-highlight-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(106, 127, 101, 0.3);
+}
+
+.btn-projeto-outline {
+  background-color: transparent;
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-projeto-outline:hover {
+  background-color: var(--color-accent);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Cards com nova paleta */
+.card-projeto {
+  background-color: var(--color-card-bg);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.card-projeto:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.card-projeto-accent {
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(231, 111, 81, 0.2);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.card-projeto-highlight {
+  background: linear-gradient(135deg, var(--color-highlight) 0%, var(--color-highlight-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(106, 127, 101, 0.2);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+/* Links estilizados */
+.link-projeto {
+  color: var(--color-highlight);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.link-projeto:hover {
+  color: var(--color-highlight-dark);
+  text-decoration: underline;
+}
+
+/* Gradientes principais */
+.gradient-projeto-primary {
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-highlight) 100%);
+}
+
+.gradient-projeto-accent {
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+}
+
+.gradient-projeto-highlight {
+  background: linear-gradient(135deg, var(--color-highlight) 0%, var(--color-highlight-dark) 100%);
+}
+
+/* Efeitos especiais */
+.glow-projeto-accent {
+  box-shadow: 0 0 20px rgba(231, 111, 81, 0.3);
+}
+
+.glow-projeto-highlight {
+  box-shadow: 0 0 20px rgba(106, 127, 101, 0.3);
+}
+
+/* Responsividade para cores */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1a1a1a;
+    --color-text: #e5e5e5;
+    --color-card-bg: #2a2a2a;
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -94,8 +94,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
   );
 };
 
-// Componente de gráfico de composição corporal
-const BodyCompositionChart: React.FC<{ data: any[] }> = ({ data }) => {
+// Componente de gráfico de composição corporal memoizado
+const BodyCompositionChart: React.FC<{ data: any[] }> = React.memo(({ data }) => {
   return (
     <Card className="bg-netflix-card border-netflix-border">
       <CardHeader>
@@ -146,7 +146,7 @@ const BodyCompositionChart: React.FC<{ data: any[] }> = ({ data }) => {
       </CardContent>
     </Card>
   );
-};
+});
 
 // Gráfico combinado Peso + IMC
 const WeightIMCChart: React.FC<{ data: any[] }> = ({ data }) => {
@@ -290,22 +290,27 @@ export const EnhancedDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [timeRange, setTimeRange] = useState(30);
 
-  // Preparar dados para gráficos
-  const chartData = pesagens.slice(0, timeRange).reverse().map(pesagem => {
-    const altura = dadosFisicos?.altura_cm || 170;
-    const imc = pesagem.peso_kg / Math.pow(altura / 100, 2);
+  // Preparar dados para gráficos usando useCallback para evitar recálculos desnecessários
+  const chartData = useCallback(() => {
+    if (!pesagens?.length) return [];
     
-    return {
-      data: format(new Date(pesagem.data_medicao), 'dd/MM'),
-      peso: pesagem.peso_kg,
-      imc: Math.round(imc * 10) / 10,
-      gordura: pesagem.gordura_corporal_pct || 0,
-      musculo: pesagem.massa_muscular_kg || 0,
-      agua: pesagem.agua_corporal_pct || 0,
-      data_medicao: pesagem.data_medicao
-    };
-  });
+    return pesagens.slice(0, timeRange).reverse().map(pesagem => {
+      const altura = dadosFisicos?.altura_cm || 170;
+      const imc = pesagem.peso_kg / Math.pow(altura / 100, 2);
+      
+      return {
+        data: format(new Date(pesagem.data_medicao), 'dd/MM'),
+        peso: pesagem.peso_kg,
+        imc: Math.round(imc * 10) / 10,
+        gordura: pesagem.gordura_corporal_pct || 0,
+        musculo: pesagem.massa_muscular_kg || 0,
+        agua: pesagem.agua_corporal_pct || 0,
+        data_medicao: pesagem.data_medicao
+      };
+    });
+  }, [pesagens, timeRange, dadosFisicos]);
 
+  const processedChartData = chartData();
   const latestData = pesagens[0] || {};
 
   if (loading) {
@@ -381,13 +386,13 @@ export const EnhancedDashboard: React.FC = () => {
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <WeightIMCChart data={chartData} />
+            <WeightIMCChart data={processedChartData} />
             <CircularIndicators data={latestData} />
           </div>
         </TabsContent>
 
         <TabsContent value="composition" className="space-y-6">
-          <BodyCompositionChart data={chartData} />
+          <BodyCompositionChart data={processedChartData} />
         </TabsContent>
 
         <TabsContent value="trends" className="space-y-6">
@@ -401,7 +406,7 @@ export const EnhancedDashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={chartData}>
+                  <LineChart data={processedChartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--netflix-border))" />
                     <XAxis dataKey="data" tick={{ fill: 'hsl(var(--netflix-text))' }} />
                     <YAxis tick={{ fill: 'hsl(var(--netflix-text))' }} />

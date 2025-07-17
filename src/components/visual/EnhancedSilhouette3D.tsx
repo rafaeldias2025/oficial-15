@@ -36,7 +36,7 @@ const AdvancedBodyModel: React.FC<{
   animationMode: 'rotate' | 'breath' | 'pulse' | 'static';
   showMetrics: boolean;
   colorMode: 'imc' | 'composition' | 'health';
-}> = ({ 
+}> = React.memo(({ 
   peso, 
   altura, 
   sexo, 
@@ -75,6 +75,26 @@ const AdvancedBodyModel: React.FC<{
       }
     }
   });
+
+  // Cleanup dos recursos Three.js quando componente desmonta
+  useEffect(() => {
+    return () => {
+      if (bodyRef.current) {
+        bodyRef.current.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach(mat => mat.dispose());
+              } else {
+                child.material.dispose();
+              }
+            }
+          }
+        });
+      }
+    };
+  }, []);
 
   // Calcular proporções avançadas
   const getAdvancedProportions = () => {
@@ -282,7 +302,9 @@ const AdvancedBodyModel: React.FC<{
       />
     </group>
   );
-};
+});
+
+AdvancedBodyModel.displayName = 'AdvancedBodyModel';
 
 const MetricCard: React.FC<{ 
   icon: React.ReactNode;

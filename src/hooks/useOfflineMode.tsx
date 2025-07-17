@@ -14,37 +14,6 @@ export const useOfflineMode = () => {
   const [pendingActions, setPendingActions] = useState<any[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      toast({
-        title: "Conexão restaurada 🌐",
-        description: "Sincronizando dados..."
-      });
-      syncPendingActions();
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-      toast({
-        title: "Modo offline ⚡",
-        description: "Você pode continuar usando funcionalidades básicas",
-        variant: "destructive"
-      });
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Carregar dados offline do localStorage
-    loadOfflineData();
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
   const loadOfflineData = useCallback(() => {
     try {
       const data = localStorage.getItem('offline_data');
@@ -78,24 +47,6 @@ export const useOfflineMode = () => {
     }
   }, [offlineData]);
 
-  const addPendingAction = useCallback((action: any) => {
-    const newAction = {
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString(),
-      ...action
-    };
-
-    setPendingActions(prev => [...prev, newAction]);
-    
-    // Salvar no localStorage
-    try {
-      const pending = [...pendingActions, newAction];
-      localStorage.setItem('pending_actions', JSON.stringify(pending));
-    } catch (error) {
-      console.error('Erro ao salvar ação pendente:', error);
-    }
-  }, [pendingActions]);
-
   const syncPendingActions = useCallback(async () => {
     if (pendingActions.length === 0) return;
 
@@ -126,6 +77,60 @@ export const useOfflineMode = () => {
       });
     }
   }, [pendingActions, toast]);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const handleOnline = () => {
+      if (!isMounted) return;
+      setIsOnline(true);
+      toast({
+        title: "Conexão restaurada 🌐",
+        description: "Sincronizando dados..."
+      });
+      syncPendingActions();
+    };
+
+    const handleOffline = () => {
+      if (!isMounted) return;
+      setIsOnline(false);
+      toast({
+        title: "Modo offline ⚡",
+        description: "Você pode continuar usando funcionalidades básicas",
+        variant: "destructive"
+      });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Carregar dados offline do localStorage
+    loadOfflineData();
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [toast, syncPendingActions, loadOfflineData]);
+
+  const addPendingAction = useCallback((action: any) => {
+    const newAction = {
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      ...action
+    };
+
+    setPendingActions(prev => [...prev, newAction]);
+    
+    // Salvar no localStorage
+    try {
+      const pending = [...pendingActions, newAction];
+      localStorage.setItem('pending_actions', JSON.stringify(pending));
+    } catch (error) {
+      console.error('Erro ao salvar ação pendente:', error);
+    }
+  }, [pendingActions]);
 
   const completeMissionOffline = useCallback((missionId: string) => {
     if (!isOnline) {

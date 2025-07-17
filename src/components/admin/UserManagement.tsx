@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -57,30 +57,58 @@ export const UserManagement: React.FC = () => {
     role: 'client' as 'admin' | 'client' | 'visitor'
   });
 
-  // Buscar usuários
-  const fetchUsers = async () => {
+  // Buscar usuários com cache e abort controller
+  const fetchUsers = useCallback(async (abortController?: AbortController) => {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .abortSignal(abortController?.signal);
       
       if (error) throw error;
-      setUsers(data || []);
+      if (!abortController?.signal.aborted) {
+        setUsers(data || []);
+      }
     } catch (error) {
-      handleError(error, 'Carregar usuários');
+      if (error.name !== 'AbortError') {
+        handleError(error, 'Carregar usuários');
+      }
     } finally {
-      setLoading(false);
+      if (!abortController?.signal.aborted) {
+        setLoading(false);
+      }
     }
-  };
+  }, [handleError]);
 
-  // Criar usuário
-  const handleCreateUser = async () => {
+  // Criar usuário com validação melhorada
+  const handleCreateUser = useCallback(async () => {
     if (!createForm.email || !createForm.password || !createForm.full_name) {
       toast({
         title: "❌ Campos obrigatórios",
         description: "Preencha todos os campos obrigatórios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validação de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(createForm.email)) {
+      toast({
+        title: "❌ Email inválido",
+        description: "Digite um email válido",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validação de senha
+    if (createForm.password.length < 6) {
+      toast({
+        title: "❌ Senha muito fraca",
+        description: "A senha deve ter pelo menos 6 caracteres",
         variant: "destructive"
       });
       return;
@@ -140,7 +168,7 @@ export const UserManagement: React.FC = () => {
     } finally {
       setIsCreating(false);
     }
-  };
+  }, [createForm, fetchUsers, handleError, toast]);
 
   // Editar usuário
   const handleEditUser = (user: any) => {
@@ -230,8 +258,13 @@ export const UserManagement: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    const abortController = new AbortController();
+    fetchUsers(abortController);
+    
+    return () => {
+      abortController.abort();
+    };
+  }, [fetchUsers]);
 
   const filteredUsers = users.filter(user => 
     user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -364,7 +397,7 @@ export const UserManagement: React.FC = () => {
             </Dialog>
 
             <Button 
-              onClick={fetchUsers} 
+              onClick={() => fetchUsers()} 
               disabled={loading}
               variant="outline" 
               className="border-netflix-border text-netflix-text hover:bg-netflix-hover"

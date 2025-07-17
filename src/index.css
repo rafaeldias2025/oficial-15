@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Importar cores do projeto */
+@import './styles/projeto-colors.css';
+@import './styles/projeto-utilities.css';
+
 /* Palette de cores moderna e acessível */
 :root {
   --background: 0 0% 100%;
@@ -24,6 +28,13 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 221.2 83.2% 53.3%;
   --radius: 0.5rem;
+
+  /* Nova paleta de cores do projeto */
+  --color-bg: #FFFFFF;
+  --color-text: #333333;
+  --color-accent: #E76F51;
+  --color-highlight: #6A7F65;
+  --color-card-bg: #F5F2EF;
 }
 
 .dark {
@@ -53,14 +64,59 @@
     border-color: hsl(var(--border));
   }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: var(--color-bg);
+    color: var(--color-text);
   }
+}
+
+/* Estilos globais com nova paleta */
+button,
+.btn-accent {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+button:hover,
+.btn-accent:hover {
+  background-color: #d4623f;
+  transform: translateY(-1px);
+}
+
+/* Links e destaques secundários */
+a,
+.text-highlight {
+  color: var(--color-highlight);
+  transition: color 0.2s ease;
+}
+
+a:hover,
+.text-highlight:hover {
+  color: #5a6b55;
+}
+
+/* Background de cards e seções */
+.card {
+  background-color: var(--color-card-bg);
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 /* Gradientes para o novo design */
 .gradient-brand {
-  background: linear-gradient(135deg, #ee7318 0%, #f39632 100%);
+  background: linear-gradient(135deg, var(--color-accent) 0%, #d4623f 100%);
+}
+
+.gradient-highlight {
+  background: linear-gradient(135deg, var(--color-highlight) 0%, #5a6b55 100%);
 }
 
 .gradient-wellness {
@@ -77,6 +133,11 @@
 
 .gradient-sunset {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Gradiente principal do projeto */
+.gradient-projeto {
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-highlight) 100%);
 }
 
 .glass-effect {

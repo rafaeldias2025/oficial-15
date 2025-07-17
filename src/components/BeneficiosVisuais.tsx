@@ -273,6 +273,52 @@ export const BeneficiosVisuais: React.FC = () => {
           </p>
         </div>
 
+        {/* Card de Integração Google Fit - DESTAQUE */}
+        {!healthState.isConnected && (
+          <Card className="border-2 border-gradient-to-r from-green-500 to-blue-500 bg-gradient-to-r from-green-50 to-blue-50 animate-pulse">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-700">
+                📱 Conecte seu Google Fit
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-muted-foreground">
+                Conecte seu Google Fit para sincronizar automaticamente seus dados de atividade física, peso e métricas de saúde
+              </p>
+              <Button
+                onClick={handleHealthConnection}
+                disabled={healthState.isLoading}
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-lg px-8 py-3"
+                size="lg"
+              >
+                {healthState.isLoading ? (
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                ) : (
+                  <>
+                    📱 Conectar Agora - Digite seu Email
+                  </>
+                )}
+              </Button>
+              <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                <span>✅ Sincronização automática</span>
+                <span>✅ Dados seguros</span>
+                <span>✅ Fácil configuração</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Status do Google Fit quando conectado */}
+        {healthState.isConnected && (
+          <Card className="border-2 border-green-500 bg-green-50">
+            <CardContent className="text-center py-4">
+              <div className="flex items-center justify-center gap-2 text-green-700 font-semibold">
+                ✅ Google Fit Conectado - Dados sincronizados automaticamente
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Dados de Saúde */}
         {dadosConsolidados.dadosSaude ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-scale-in">
@@ -430,21 +476,30 @@ export const BeneficiosVisuais: React.FC = () => {
                         atualizarTodosOsDados();
                       }}
                     />
-                    {/* Botão de integração de saúde - mesmo padrão da balança */}
+                    {/* Botão de integração com Google Fit - DESTAQUE */}
                     <Button
                       onClick={handleHealthConnection}
                       disabled={healthState.isConnected || healthState.isLoading}
-                      className="w-full bg-instituto-purple hover:bg-instituto-purple/80 text-white shadow-lg mt-2"
+                      className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-lg mt-2 border-2 border-white/20"
                       size="lg"
                     >
                       {healthState.isLoading ? (
                         <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      ) : healthState.isConnected ? (
+                        <>
+                          ✅ Google Fit Conectado
+                        </>
                       ) : (
                         <>
-                          🩺 Saúde Inteligente
+                          📱 Conectar Google Fit
                         </>
                       )}
                     </Button>
+                    {!healthState.isConnected && (
+                      <p className="text-xs text-center text-muted-foreground mt-1">
+                        Clique para inserir seu email e sincronizar dados automaticamente
+                      </p>
+                    )}
                     <Button 
                       onClick={() => {
                         console.log('🔄 Botão atualizar clicado, refazendo todos os cálculos...');

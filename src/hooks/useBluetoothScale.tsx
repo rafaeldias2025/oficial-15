@@ -1,6 +1,64 @@
 
 import { useState, useCallback, useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+
+// Wrapper do toast para compatibilidade
+const useToast = () => ({
+  toast: (options: any) => {
+    if (options.variant === 'destructive') {
+      toast.error(options.title, { description: options.description });
+    } else {
+      toast.success(options.title, { description: options.description });
+    }
+  }
+});
+
+// Tipos Web Bluetooth
+declare global {
+  interface Navigator {
+    bluetooth: {
+      requestDevice(options: {
+        filters: { namePrefix: string }[];
+        optionalServices: string[];
+      }): Promise<BluetoothDevice>;
+    };
+  }
+  
+  interface BluetoothDevice {
+    name?: string;
+    gatt?: BluetoothRemoteGATTServer;
+    addEventListener(type: string, listener: (event: any) => void): void;
+    removeEventListener(type: string, listener: (event: any) => void): void;
+  }
+  
+  interface BluetoothRemoteGATTServer {
+    connected: boolean;
+    connect(): Promise<BluetoothRemoteGATTServer>;
+    disconnect(): void;
+    getPrimaryService(service: string): Promise<BluetoothRemoteGATTService>;
+    getPrimaryServices(): Promise<BluetoothRemoteGATTService[]>;
+  }
+  
+  interface BluetoothRemoteGATTService {
+    uuid: string;
+    getCharacteristic(characteristic: string): Promise<BluetoothRemoteGATTCharacteristic>;
+    getCharacteristics(): Promise<BluetoothRemoteGATTCharacteristic[]>;
+  }
+  
+  interface BluetoothRemoteGATTCharacteristic {
+    uuid: string;
+    value?: DataView;
+    properties: {
+      notify: boolean;
+      indicate: boolean;
+      read: boolean;
+      write: boolean;
+    };
+    startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
+    addEventListener(type: string, listener: (event: any) => void): void;
+    removeEventListener(type: string, listener: (event: any) => void): void;
+  }
+}
 
 export interface ScaleReading {
   weight: number;
@@ -378,17 +436,29 @@ export const useBluetoothScale = () => {
   }, [state.isConnected, state.lastReading, toast]);
 
   const disconnect = useCallback(() => {
+    // Limpar timers primeiro para evitar atualizações após unmount
     if (countdownTimerRef.current) {
       clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
     }
     if (readingTimerRef.current) {
       clearInterval(readingTimerRef.current);
+      readingTimerRef.current = null;
     }
 
+    // Desconectar dispositivo se conectado
     if (state.device?.gatt?.connected) {
-      state.device.gatt.disconnect();
+      try {
+        state.device.gatt.disconnect();
+      } catch (error) {
+        console.warn('Erro ao desconectar dispositivo:', error);
+      }
     }
 
+    // Limpar referências
+    characteristicRef.current = null;
+
+    // Resetar estado
     setState({
       isConnected: false,
       isConnecting: false,
@@ -398,8 +468,6 @@ export const useBluetoothScale = () => {
       countdown: 0,
       status: 'Desconectado'
     });
-
-    characteristicRef.current = null;
 
     toast({
       title: "🔌 Balança desconectada",

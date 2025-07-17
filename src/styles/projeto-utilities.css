@@ -1,0 +1,69 @@
+/* 🎨 UTILITÁRIOS DE CORES - INSTITUTO DOS SONHOS */
+
+/* Classes personalizadas usando as novas cores do projeto */
+/* Cores de texto */
+.text-projeto-accent { color: #E76F51; }
+.text-projeto-highlight { color: #6A7F65; }
+.text-projeto-primary { color: #333333; }
+
+/* Cores de fundo */
+.bg-projeto-accent { background-color: #E76F51; }
+.bg-projeto-highlight { background-color: #6A7F65; }
+.bg-projeto-card { background-color: #F5F2EF; }
+.bg-projeto-primary { background-color: #FFFFFF; }
+
+/* Cores de borda */
+.border-projeto-accent { border-color: #E76F51; }
+.border-projeto-highlight { border-color: #6A7F65; }
+
+/* Efeitos hover */
+.hover-projeto-accent:hover { 
+  background-color: #d4623f; 
+  transition: background-color 0.2s ease;
+}
+.hover-projeto-highlight:hover { 
+  background-color: #5a6b55; 
+  transition: background-color 0.2s ease;
+}
+
+/* Gradientes */
+.gradient-projeto { 
+  background: linear-gradient(135deg, #E76F51 0%, #6A7F65 100%); 
+}
+
+.gradient-projeto-accent { 
+  background: linear-gradient(135deg, #E76F51 0%, #d4623f 100%); 
+}
+
+.gradient-projeto-highlight { 
+  background: linear-gradient(135deg, #6A7F65 0%, #5a6b55 100%); 
+}
+
+/* Sombras coloridas */
+.shadow-projeto-accent { 
+  box-shadow: 0 4px 14px rgba(231, 111, 81, 0.25); 
+}
+
+.shadow-projeto-highlight { 
+  box-shadow: 0 4px 14px rgba(106, 127, 101, 0.25); 
+}
+
+/* Animações com cores */
+.pulse-projeto-accent {
+  animation: pulse-accent 2s ease-in-out infinite alternate;
+}
+
+.pulse-projeto-highlight {
+  animation: pulse-highlight 2s ease-in-out infinite alternate;
+}
+
+/* Keyframes para animações */
+@keyframes pulse-accent {
+  0% { box-shadow: 0 0 20px rgba(231, 111, 81, 0.2); }
+  100% { box-shadow: 0 0 30px rgba(231, 111, 81, 0.4); }
+}
+
+@keyframes pulse-highlight {
+  0% { box-shadow: 0 0 20px rgba(106, 127, 101, 0.2); }
+  100% { box-shadow: 0 0 30px rgba(106, 127, 101, 0.4); }
+}

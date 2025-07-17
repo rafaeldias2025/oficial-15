@@ -21,19 +21,24 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 const AdminTestRoute = lazy(() => import('@/components/admin/AdminTestRoute').then(module => ({ default: module.AdminTestRoute })));
 const AdminUserCreator = lazy(() => import('@/components/admin/AdminUserCreator').then(module => ({ default: module.AdminUserCreator })));
 
-// Configuração do cliente de query
+// Configuração otimizada do cliente de query
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutos
-      gcTime: 10 * 60 * 1000, // 10 minutos
+      staleTime: 10 * 60 * 1000, // 10 minutos (aumentado para melhor cache)
+      gcTime: 30 * 60 * 1000, // 30 minutos (aumentado para melhor performance)
+      refetchOnMount: false, // Evita refetch desnecessário
+      refetchOnReconnect: 'always', // Revalida ao reconectar
     },
     mutations: {
       retry: 2,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+      onError: (error) => {
+        console.error('Mutation error:', error);
+      },
     },
   },
 });
@@ -135,7 +140,7 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-// Componente principal da aplicação
+// Componente principal da aplicação - Otimizado para performance
 const AppContent = React.memo(() => {
   const { errors, clearError, clearErrors } = useErrorHandler();
   const [isInitialized, setIsInitialized] = useState(false);
@@ -144,38 +149,67 @@ const AppContent = React.memo(() => {
 
   // Inicializar ferramentas de Analytics (executa apenas uma vez)
   useEffect(() => {
-    initAnalytics();
+    let isMounted = true;
+    
+    const initAnalyticsAsync = async () => {
+      if (isMounted) {
+        initAnalytics();
+      }
+    };
+    
+    initAnalyticsAsync();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Registrar pageviews a cada mudança de rota
   useEffect(() => {
-    trackPageView(location.pathname + location.search);
+    const timeoutId = setTimeout(() => {
+      trackPageView(location.pathname + location.search);
+    }, 100); // Pequeno delay para melhor tracking
+
+    return () => clearTimeout(timeoutId);
   }, [location]);
 
   useEffect(() => {
-    // Inicialização da aplicação
+    let isMounted = true;
+    
+    // Inicialização da aplicação com cleanup
     const initApp = async () => {
       try {
-        // Preload de recursos críticos
-        await Promise.all([
-          // Preload de imagens importantes
-          new Promise((resolve) => {
-            const img = new Image();
-            img.onload = resolve;
-            img.onerror = resolve;
-            img.src = '/src/assets/butterfly-logo.png';
-          }),
-          // Simular inicialização de configurações
-          new Promise((resolve) => setTimeout(resolve, 500))
-        ]);
+        // Preload de recursos críticos com timeout
+        const preloadPromises = [
+          // Preload de imagens importantes com timeout
+          Promise.race([
+            new Promise((resolve) => {
+              const img = new Image();
+              img.onload = resolve;
+              img.onerror = resolve;
+              img.src = '/src/assets/butterfly-logo.png';
+            }),
+            new Promise(resolve => setTimeout(resolve, 2000)) // Timeout de 2s
+          ]),
+          // Simular inicialização de configurações com timeout reduzido
+          new Promise((resolve) => setTimeout(resolve, 300))
+        ];
+        
+        await Promise.all(preloadPromises);
       } catch (error) {
         console.error('Erro na inicialização:', error);
       } finally {
-        setIsInitialized(true);
+        if (isMounted) {
+          setIsInitialized(true);
+        }
       }
     };
 
     initApp();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (!isInitialized) {

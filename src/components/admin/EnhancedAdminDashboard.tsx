@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,8 +48,8 @@ export const EnhancedAdminDashboard: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Função de logout melhorada
-  const handleSignOut = async () => {
+  // Função de logout melhorada com useCallback
+  const handleSignOut = useCallback(async () => {
     try {
       setIsSigningOut(true);
       
@@ -87,10 +87,10 @@ export const EnhancedAdminDashboard: React.FC = () => {
     } finally {
       setIsSigningOut(false);
     }
-  };
+  }, [signOut, toast, navigate]);
 
-  // Função para navegar
-  const navigateToPublic = () => {
+  // Função para navegar com useCallback
+  const navigateToPublic = useCallback(() => {
     try {
       toast({
         title: "🌐 Redirecionando...",
@@ -105,7 +105,7 @@ export const EnhancedAdminDashboard: React.FC = () => {
         variant: "destructive"
       });
     }
-  };
+  }, [toast, navigate]);
 
   // Menu do usuário
   const UserMenu = () => (

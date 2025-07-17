@@ -1,0 +1,32 @@
+interface ColoredCardProps {
+  variant: 'steps' | 'heart' | 'calories' | 'sleep' | 'active' | 'distance';
+  children: React.ReactNode;
+  selected?: boolean;
+}
+
+const ColoredCard: React.FC<ColoredCardProps> = ({ variant, children, selected }) => {
+  const colors = {
+    steps: { bg: 'var(--metric-steps)', light: '#dbeafe' },
+    heart: { bg: 'var(--metric-heart)', light: '#fecaca' },
+    calories: { bg: 'var(--metric-calories)', light: '#fed7aa' },
+    sleep: { bg: 'var(--metric-sleep)', light: '#e9d5ff' },
+    active: { bg: 'var(--metric-active)', light: '#d1fae5' },
+    distance: { bg: 'var(--metric-distance)', light: '#e0e7ff' }
+  };
+
+  return (
+    <div
+      style={{
+        backgroundColor: colors[variant].light,
+        borderColor: colors[variant].bg,
+        ...(selected && { 
+          boxShadow: `0 0 0 2px ${colors[variant].bg}`,
+          transform: 'scale(1.05)'
+        })
+      }}
+      className="border-2 rounded-xl p-6 cursor-pointer transition-all"
+    >
+      {children}
+    </div>
+  );
+};
