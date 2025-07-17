@@ -1,53 +1,69 @@
 
-import type { Config } from "tailwindcss";
-
-export default {
-	darkMode: ["class"],
-	content: [
-		"./pages/**/*.{ts,tsx}",
-		"./components/**/*.{ts,tsx}",
-		"./app/**/*.{ts,tsx}",
-		"./src/**/*.{ts,tsx}",
-	],
-	prefix: "",
-	theme: {
-		container: {
-			center: true,
-			padding: '2rem',
-			screens: {
-				'2xl': '1400px'
-			}
-		},
-		extend: {
-			colors: {
-				border: 'hsl(var(--border))',
-				input: 'hsl(var(--input))',
-				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
-				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
-				},
-				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
-				},
-				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
-				},
-				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
-				},
-				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
-				},
-				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
+module.exports = {
+  darkMode: 'class',
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        // Cores Primárias
+        primary: {
+          50: '#e6f7ff',
+          100: '#bae7ff',
+          200: '#91d5ff',
+          300: '#69c0ff',
+          400: '#40a9ff',
+          500: '#1890ff',
+          600: '#096dd9',
+          700: '#0050b3',
+          800: '#003a8c',
+          900: '#002766',
+          DEFAULT: '#1890ff',
+        },
+        
+        // Cores Secundárias
+        secondary: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
+          DEFAULT: '#22c55e',
+        },
+        
+        // Cores de Destaque
+        accent: {
+          50: '#fff5f5',
+          100: '#fed7d7',
+          200: '#feb2b2',
+          300: '#fc8181',
+          400: '#f56565',
+          500: '#ff6b6b',
+          600: '#e53e3e',
+          700: '#c53030',
+          800: '#9b2c2c',
+          900: '#742a2a',
+          DEFAULT: '#ff6b6b',
+        },
+        
+        // Cores de Saúde
+        health: {
+          heart: '#ef4444',
+          steps: '#3b82f6',
+          sleep: '#8b5cf6',
+          water: '#06b6d4',
+          calories: '#f59e0b',
+          weight: '#10b981',
+          pressure: '#dc2626',
+          temperature: '#f97316'
+        }
 				},
 				card: {
 					DEFAULT: 'hsl(var(--card))',

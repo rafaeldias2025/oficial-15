@@ -6,6 +6,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorDisplay, useErrorHandler } from '@/hooks/useErrorHandler';
 import { initAnalytics, trackPageView } from '@/lib/analytics';
+import { MainLayout } from '@/components/layout/MainLayout';
 import '@/styles/health-dashboard.css';
 
 // Lazy loading das páginas principais
@@ -16,6 +17,7 @@ const FullSession = lazy(() => import('@/pages/FullSession'));
 const SampleSession = lazy(() => import('@/pages/SampleSession'));
 const PublicRanking = lazy(() => import('@/pages/PublicRanking'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
+const HealthMetrics = lazy(() => import('@/pages/HealthMetrics'));
 
 // Lazy loading do painel administrativo
 const AdminTestRoute = lazy(() => import('@/components/admin/AdminTestRoute').then(module => ({ default: module.AdminTestRoute })));
@@ -218,7 +220,7 @@ const AppContent = React.memo(() => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <MainLayout>
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/" element={
@@ -261,6 +263,11 @@ const AppContent = React.memo(() => {
                 <PublicRanking />
               </Suspense>
             } />
+            <Route path="/health/metrics" element={
+              <Suspense fallback={<PageFallback page="Métricas de Saúde" />}>
+                <HealthMetrics />
+              </Suspense>
+            } />
             <Route path="*" element={
               <Suspense fallback={<PageFallback page="Página" />}>
                 <NotFound />
@@ -275,7 +282,7 @@ const AppContent = React.memo(() => {
           onClearError={clearError} 
           onClearAll={clearErrors} 
         />
-      </div>
+      </MainLayout>
     </ErrorBoundary>
   );
 });
