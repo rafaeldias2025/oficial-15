@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import NetflixCourseCarousel from './NetflixCourseCarousel';
+import ResponsiveCarousel from '../carousel/ResponsiveCarousel';
 import { NetflixHeroSection } from './NetflixHeroSection';
 import { NetflixCategoryGrid } from './NetflixCategoryGrid';
 import { simulatedCourses } from '@/data/courses';
@@ -22,33 +22,33 @@ export const NetflixCoursesPage: React.FC = () => {
       {/* Course Carousels */}
       <div className="max-w-7xl mx-auto px-8 py-12 space-y-12">
         {continueCourses.length > 0 && (
-          <NetflixCourseCarousel
+          <ResponsiveCarousel
             title="Continue Assistindo"
             courses={continueCourses}
             showFilters={false}
           />
         )}
 
-        <NetflixCourseCarousel
+        <ResponsiveCarousel
           title="Recomendado para Você"
           courses={recommendedCourses}
           showFilters={true}
         />
 
-        <NetflixCourseCarousel
+        <ResponsiveCarousel
           title="Em Alta Agora"
           courses={trendingCourses}
           showFilters={false}
         />
 
-        <NetflixCourseCarousel
+        <ResponsiveCarousel
           title="Novos Cursos"
           courses={newCourses}
           showFilters={false}
         />
 
         {completedCourses.length > 0 && (
-          <NetflixCourseCarousel
+          <ResponsiveCarousel
             title="Seus Cursos Concluídos"
             courses={completedCourses}
             showFilters={false}

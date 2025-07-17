@@ -1,0 +1,181 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import "./styles/courses.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Variáveis CSS modernas - Nova Paleta Instituto dos Sonhos */
+:root {
+  /* Sistema de cores principal */
+  --background: 0 0% 100%;
+  --foreground: 224 71.4% 4.1%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 224 71.4% 4.1%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71.4% 4.1%;
+  
+  --primary: 22 93% 51%; /* Brand orange */
+  --primary-foreground: 210 20% 98%;
+  
+  --secondary: 142 76% 36%; /* Wellness green */
+  --secondary-foreground: 210 20% 98%;
+  
+  --accent: 262 73% 63%; /* Mindful purple */
+  --accent-foreground: 210 20% 98%;
+  
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 22 93% 51%;
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 20% 98%;
+  
+  /* Raio padrão */
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 224 71.4% 4.1%;
+  --foreground: 210 20% 98%;
+  
+  --card: 224 71.4% 4.1%;
+  --card-foreground: 210 20% 98%;
+  
+  --popover: 224 71.4% 4.1%;
+  --popover-foreground: 210 20% 98%;
+  
+  --primary: 22 93% 51%;
+  --primary-foreground: 224 71.4% 4.1%;
+  
+  --secondary: 142 76% 36%;
+  --secondary-foreground: 210 20% 98%;
+  
+  --accent: 262 73% 63%;
+  --accent-foreground: 210 20% 98%;
+  
+  --muted: 215 27.9% 16.9%;
+  --muted-foreground: 217.9 10.6% 64.9%;
+  
+  --border: 215 27.9% 16.9%;
+  --input: 215 27.9% 16.9%;
+  --ring: 22 93% 51%;
+  
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 20% 98%;
+}
+
+  /* Componentes de UI com contraste aprimorado */
+  --card: 255 255 255;
+  --card-foreground: 15 23 42;
+  --popover: 255 255 255;
+  --popover-foreground: 15 23 42;
+  --muted: 250 250 250;
+  --muted-foreground: 82 82 91;
+  --border: 212 212 216;
+  --input: 228 228 231;
+  --ring: 37 99 235;
+  --radius: 0.75rem;                  /* Bordas mais arredondadas para melhor usabilidade */
+
+  /* Shadows mais suaves para reduzir fadiga ocular */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.08);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.12), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.12), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.2);
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* Estilos personalizados para o novo design */
+.gradient-brand {
+  background: linear-gradient(135deg, #ee7318 0%, #f39632 100%);
+}
+
+.gradient-wellness {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.gradient-mindful {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.gradient-ocean {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+}
+
+.gradient-sunset {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.glass-effect {
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-effect {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Melhorias na Silhueta 3D */
+.silhueta-container {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+}
+
+.silhueta-container:hover {
+  box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.35);
+  transform: scale(1.02);
+}
+
+.course-card[data-category="Mindfulness"] .course-card-image::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(99, 102, 241, 0.4), transparent);
+  pointer-events: none;
+}

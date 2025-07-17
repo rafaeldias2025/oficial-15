@@ -4,13 +4,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import { ModernHealthDashboard } from '@/components/ModernHealthDashboard';
+import { ModernGoalChart } from '@/components/ui/modern-goal-chart';
+import { ModernMetricCard, ModernMetricsGrid } from '@/components/ui/modern-metric-card';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   AreaChart,
   Area,
@@ -24,8 +27,8 @@ import {
   ResponsiveContainer as RechartsContainer
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Scale, Activity, Target, TrendingUp, TrendingDown, 
+import {
+  Scale, Activity, Target, TrendingUp, TrendingDown,
   BarChart3, Zap, Bone, Droplets, Flame, Heart,
   Calendar, Timer, Filter, Eye, EyeOff, Maximize,
   ArrowUp, ArrowDown, Minus, ChevronRight, Sparkles
@@ -92,7 +95,7 @@ const MetricCard = ({ title, value, change, changeType, icon: Icon, color, subti
           </div>
         )}
       </div>
-      
+
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
         <div className="text-2xl font-bold">{value}</div>
@@ -461,11 +464,17 @@ export const ProgressCharts = () => {
 
       {/* Abas de Gráficos */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 glass-card">
+        <TabsList className="grid w-full grid-cols-4 glass-card">
+          <TabsTrigger value="modern">Dashboard Moderno</TabsTrigger>
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="composition">Composição</TabsTrigger>
           <TabsTrigger value="trends">Tendências</TabsTrigger>
         </TabsList>
+
+        {/* Nova aba do Dashboard Moderno */}
+        <TabsContent value="modern" className="space-y-6 mt-8">
+          <ModernHealthDashboard />
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-6 mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

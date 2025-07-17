@@ -6,6 +6,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorDisplay, useErrorHandler } from '@/hooks/useErrorHandler';
 import { initAnalytics, trackPageView } from '@/lib/analytics';
+import '@/styles/health-dashboard.css';
 
 // Lazy loading das páginas principais
 const Index = lazy(() => import('@/pages/Index'));
@@ -18,6 +19,7 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 
 // Lazy loading do painel administrativo
 const AdminTestRoute = lazy(() => import('@/components/admin/AdminTestRoute').then(module => ({ default: module.AdminTestRoute })));
+const AdminUserCreator = lazy(() => import('@/components/admin/AdminUserCreator').then(module => ({ default: module.AdminUserCreator })));
 
 // Configuração do cliente de query
 const queryClient = new QueryClient({
@@ -38,7 +40,7 @@ const queryClient = new QueryClient({
 
 // Componente de loading otimizado
 const LoadingSpinner = React.memo(() => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-brand-50 to-background">
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -47,14 +49,14 @@ const LoadingSpinner = React.memo(() => (
     >
       <div className="flex flex-col items-center gap-6">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-purple-300/30 rounded-full animate-pulse"></div>
+          <div className="w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 w-16 h-16 border-4 border-brand-300/30 rounded-full animate-pulse"></div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
             Instituto dos Sonhos
           </h3>
-          <p className="text-purple-200 text-sm">Carregando sua experiência...</p>
+          <p className="text-brand-600 text-sm">Carregando sua experiência...</p>
         </div>
       </div>
     </motion.div>
@@ -65,7 +67,7 @@ LoadingSpinner.displayName = 'LoadingSpinner';
 
 // Componente de fallback para páginas específicas
 const PageFallback = React.memo(({ page }: { page: string }) => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-brand-50 to-background">
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -73,8 +75,8 @@ const PageFallback = React.memo(({ page }: { page: string }) => (
       className="text-center"
     >
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-3 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-purple-200 text-sm">Carregando {page}...</p>
+        <div className="w-12 h-12 border-3 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-brand-600 text-sm">Carregando {page}...</p>
       </div>
     </motion.div>
   </div>
@@ -203,6 +205,11 @@ const AppContent = React.memo(() => {
             <Route path="/admin" element={
               <Suspense fallback={<PageFallback page="Painel Administrativo" />}>
                 <AdminTestRoute />
+              </Suspense>
+            } />
+            <Route path="/create-admin" element={
+              <Suspense fallback={<PageFallback page="Criar Admin" />}>
+                <AdminUserCreator />
               </Suspense>
             } />
             <Route path="/session" element={

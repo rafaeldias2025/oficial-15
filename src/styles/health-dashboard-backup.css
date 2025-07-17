@@ -1,0 +1,260 @@
+/* Health Dashboard Styles - Clean Modern Design */
+
+/* Simplified health dashboard styles */
+.health-dashboard {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+.health-card {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.health-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+
+
+/* Botões de navegação do carrossel - estilo Netflix aprimorado */
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.8);
+  border: none;
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.group\/carousel:hover .carousel-nav-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.carousel-nav-btn:hover {
+  background: rgba(249, 115, 22, 0.9);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 5px 15px rgba(249, 115, 22, 0.4);
+}
+
+.carousel-nav-btn.prev {
+  left: -25px;
+}
+
+.carousel-nav-btn.next {
+  right: -25px;
+}
+
+/* Botões de navegação superiores */
+.nav-btn-top {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.nav-btn-top:hover {
+  background: rgba(249, 115, 22, 0.8);
+  border-color: rgba(249, 115, 22, 0.8);
+  transform: scale(1.05);
+}
+
+/* Progress bars com gradiente */
+.health-progress {
+  background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Badge de idade metabólica */
+.metabolic-age-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+  }
+}
+
+/* Canvas 3D container */
+.canvas-3d-container {
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Métricas flutuantes no 3D */
+.floating-metrics {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Efeitos de partículas */
+.particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Indicadores de saúde */
+.health-indicator {
+  position: relative;
+  overflow: hidden;
+}
+
+.health-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.health-indicator:hover::before {
+  left: 100%;
+}
+
+/* Responsividade aprimorada */
+@media (max-width: 768px) {
+  .carousel-nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .carousel-nav-btn.prev {
+    left: -20px;
+  }
+  
+  .carousel-nav-btn.next {
+    right: -20px;
+  }
+  
+  .metabolic-age-badge {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Animações de entrada para cards */
+.health-card-enter {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Efeito de brilho para elementos importantes */
+.health-highlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.health-highlight::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(249, 115, 22, 0.1), transparent);
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Tooltips customizados */
+.health-tooltip {
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Estados de loading */
+.health-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Dark mode adaptations */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --health-bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  }
+  
+  .health-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .canvas-3d-container {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  }
+}

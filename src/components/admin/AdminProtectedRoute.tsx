@@ -19,7 +19,10 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
   const adminEmails = [
     'admin@instituto.com',
     'admin@sonhos.com',
-    'rafael@admin.com'
+    'rafael@admin.com',
+    'rafael@institutodossonhos.com',
+    'institutodossonhos@gmail.com',
+    'admin@test.com'
   ];
 
   console.log('🔒 AdminProtectedRoute - User:', user?.email);
@@ -56,12 +59,27 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
             <h2 className="text-xl font-bold text-netflix-text mb-2">
               Acesso Negado
             </h2>
-            <p className="text-netflix-text-muted">
+            <p className="text-netflix-text-muted mb-4">
               Você não tem permissão para acessar o painel administrativo.
             </p>
-            <p className="text-netflix-text-muted text-xs mt-2">
-              Email: {user.email} | Admin: {String(isAdmin)}
-            </p>
+            <div className="bg-netflix-dark p-4 rounded-lg text-left text-sm">
+              <p className="text-netflix-text-muted mb-2">
+                <strong>Seu email:</strong> {user.email}
+              </p>
+              <p className="text-netflix-text-muted mb-2">
+                <strong>Emails admin permitidos:</strong>
+              </p>
+              <ul className="text-xs text-netflix-text-muted list-disc list-inside">
+                {adminEmails.map(email => (
+                  <li key={email}>{email}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-4 text-xs text-netflix-text-muted">
+              <p>💡 Para ter acesso admin:</p>
+              <p>1. Faça login com um dos emails acima, ou</p>
+              <p>2. Peça para um admin adicionar seu email à lista</p>
+            </div>
           </CardContent>
         </Card>
       </div>

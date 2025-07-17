@@ -20,7 +20,9 @@ import { WelcomeHeader } from "@/components/WelcomeHeader";
 import { ClientSessions } from "@/components/sessions/ClientSessions";
 import { RequiredDataModal } from "@/components/RequiredDataModal";
 import { PaidCourses } from "@/components/courses/PaidCourses";
+import BibliotecaCursos from "@/components/BibliotecaCursos";
 import { AdvancedHealthDashboard } from "@/components/dashboard/AdvancedHealthDashboard";
+import { HealthLayout } from "@/components/layout/HealthLayout";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -54,6 +56,7 @@ const Dashboard = () => {
 
   const menuItems = [
     { id: 'inicio', label: 'Início', icon: Home },
+    { id: 'biblioteca-cursos', label: 'Biblioteca de Cursos', icon: GraduationCap },
     { id: 'cursos-pagos', label: 'Cursos Pagos', icon: GraduationCap },
     { id: 'sessoes', label: 'Sessões', icon: FileText },
     { id: 'ranking', label: 'Ranking', icon: Trophy },
@@ -70,6 +73,8 @@ const Dashboard = () => {
     switch (activeSection) {
       case 'inicio':
         return <MissaoDia isVisitor={false} />;
+      case 'biblioteca-cursos':
+        return <BibliotecaCursos />;
       case 'cursos-pagos':
         return <PaidCourses />;
       case 'sessoes':
@@ -172,7 +177,8 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-senior-primary via-senior-primary/90 to-senior-primary/95">
+    <HealthLayout showHealthStats={true} enableQuickAccess={true}>
+      <div className="min-h-screen bg-gradient-to-br from-senior-primary via-senior-primary/90 to-senior-primary/95">
       {/* Mobile Header */}
       <div className="lg:hidden bg-senior-primary/20 backdrop-blur-sm border-b border-white/10 spacing-senior-sm">
         <div className="flex items-center justify-between">
@@ -237,7 +243,8 @@ const Dashboard = () => {
 
       {/* Required Data Modal */}
       <RequiredDataModal />
-    </div>
+      </div>
+    </HealthLayout>
   );
 };
 

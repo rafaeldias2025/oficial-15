@@ -42,76 +42,34 @@ import mirrorReflection from '@/assets/mirror-reflection.png';
 import pilatesEquipment from '@/assets/pilates-equipment.png';
 import groupSilhouette from '@/assets/group-silhouette.png';
 
-// Componente de estatísticas em tempo real
-const RealTimeStats = () => {
-  const [stats, setStats] = useState({
-    activeUsers: 1247,
-    transformations: 892,
-    pointsEarned: 125836,
-    avgRating: 4.9
-  });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStats(prev => ({
-        ...prev,
-        activeUsers: prev.activeUsers + Math.floor(Math.random() * 3),
-        pointsEarned: prev.pointsEarned + Math.floor(Math.random() * 50),
-      }));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <motion.div 
-      className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.2 }}
-    >
-      <div className="glass-card p-4 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <Users className="w-5 h-5 text-health-info mr-2" />
-          <span className="text-2xl font-bold text-health-info">
-            {stats.activeUsers.toLocaleString()}
-          </span>
+// Estatísticas de impacto do Instituto
+const ImpactStats = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay: 0.4 }}
+    className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
+  >
+    {[
+      { icon: Users, value: '5.000+', label: 'Vidas Transformadas', color: 'text-brand-600' },
+      { icon: Trophy, value: '98%', label: 'Taxa de Sucesso', color: 'text-wellness-600' },
+      { icon: Crown, value: '15+', label: 'Anos de Experiência', color: 'text-mindful-600' },
+      { icon: Heart, value: '24/7', label: 'Suporte Dedicado', color: 'text-ocean-600' }
+    ].map((stat, index) => (
+      <Card key={index} className="glass-effect card-hover p-6 text-center border-0 shadow-lg">
+        <div className="flex flex-col items-center space-y-3">
+          <div className={`p-3 rounded-full bg-gradient-to-r from-background to-muted ${stat.color}`}>
+            <stat.icon className="w-6 h-6" />
+          </div>
+          <div>
+            <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+            <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
+          </div>
         </div>
-        <p className="text-sm text-netflix-text-muted">Usuários Ativos</p>
-      </div>
-      
-      <div className="glass-card p-4 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <TrendingUp className="w-5 h-5 text-health-success mr-2" />
-          <span className="text-2xl font-bold text-health-success">
-            {stats.transformations}
-          </span>
-        </div>
-        <p className="text-sm text-netflix-text-muted">Transformações</p>
-      </div>
-      
-      <div className="glass-card p-4 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <Zap className="w-5 h-5 text-health-warning mr-2" />
-          <span className="text-2xl font-bold text-health-warning">
-            {stats.pointsEarned.toLocaleString()}
-          </span>
-        </div>
-        <p className="text-sm text-netflix-text-muted">Pontos Ganhos</p>
-      </div>
-      
-      <div className="glass-card p-4 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <Star className="w-5 h-5 text-health-warning mr-2" />
-          <span className="text-2xl font-bold text-health-warning">
-            {stats.avgRating}
-          </span>
-        </div>
-        <p className="text-sm text-netflix-text-muted">Avaliação</p>
-      </div>
-    </motion.div>
-  );
-};
+      </Card>
+    ))}
+  </motion.div>
+);
 
 // Componente de funcionalidades destacadas
 const FeatureCard = ({ icon: Icon, title, description, color, delay }: {
@@ -122,17 +80,16 @@ const FeatureCard = ({ icon: Icon, title, description, color, delay }: {
   delay: number
 }) => (
   <motion.div
-    className="glass-card p-6 hover:scale-105 transition-all duration-300"
+    className="glass-effect card-hover p-6 transition-all duration-300"
     initial={{ opacity: 0, y: 30 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
-    whileHover={{ y: -5 }}
   >
-    <div className={`w-12 h-12 rounded-xl bg-${color}/20 flex items-center justify-center mb-4`}>
-      <Icon className={`w-6 h-6 text-${color}`} />
+    <div className={`p-3 w-fit rounded-lg ${color} mb-4`}>
+      <Icon className="w-6 h-6 text-white" />
     </div>
-    <h3 className="text-xl font-semibold text-netflix-text mb-2">{title}</h3>
-    <p className="text-netflix-text-muted leading-relaxed">{description}</p>
+    <h3 className="text-lg font-semibold mb-2 text-foreground">{title}</h3>
+    <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
   </motion.div>
 );
 
@@ -195,22 +152,26 @@ const VisualBenefits = () => {
     { 
       icon: BarChart3, 
       title: "Acompanhamento Inteligente", 
-      description: "Gráficos e análises detalhadas do seu progresso" 
+      description: "Gráficos e análises detalhadas do seu progresso",
+      color: "gradient-brand"
     },
     { 
       icon: Scale, 
       title: "Balança Inteligente", 
-      description: "Sincronização automática com balanças Bluetooth" 
+      description: "Sincronização automática com balanças Bluetooth",
+      color: "gradient-wellness"
     },
     { 
       icon: Flame, 
       title: "Gamificação", 
-      description: "Sistema de pontos, níveis e conquistas motivadores" 
+      description: "Sistema de pontos, níveis e conquistas motivadores",
+      color: "gradient-mindful"
     },
     { 
       icon: Heart, 
       title: "Saúde Integral", 
-      description: "Monitoramento completo de métricas de saúde" 
+      description: "Monitoramento completo de métricas de saúde",
+      color: "gradient-ocean"
     },
   ];
 
@@ -222,7 +183,7 @@ const VisualBenefits = () => {
           icon={benefit.icon}
           title={benefit.title}
           description={benefit.description}
-          color="primary"
+          color={benefit.color}
           delay={index * 0.1}
         />
       ))}
@@ -238,12 +199,12 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-health-purple/5 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-50 via-transparent to-mindful-50 pointer-events-none" />
       
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"
+          className="absolute -top-40 -right-40 w-80 h-80 bg-brand-100/50 rounded-full blur-3xl"
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.5, 0.3],
@@ -255,7 +216,7 @@ const HomePage = () => {
           }}
         />
         <motion.div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-health-purple/10 rounded-full blur-3xl"
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-mindful-100/50 rounded-full blur-3xl"
           animate={{
             scale: [1.2, 1, 1.2],
             opacity: [0.5, 0.3, 0.5],
@@ -270,7 +231,7 @@ const HomePage = () => {
       </div>
 
       {/* Header */}
-      <header className="relative z-50 border-b border-netflix-border bg-background/80 backdrop-blur-lg">
+      <header className="relative z-50 border-b border-border bg-background/80 backdrop-blur-lg">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <motion.div 
@@ -280,14 +241,14 @@ const HomePage = () => {
               transition={{ duration: 0.5 }}
             >
               <img src={butterflyLogo} alt="Instituto dos Sonhos" className="w-10 h-10" />
-              <span className="text-2xl font-bold text-foreground">Instituto dos Sonhos</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">Instituto dos Sonhos</span>
             </motion.div>
             
             <motion.nav 
               className="flex gap-6 items-center"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Link to="/ranking">
                 <Button variant="ghost" className="text-netflix-text hover:text-primary">
@@ -340,48 +301,48 @@ const HomePage = () => {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="flex flex-col sm:flex-row gap-3"
                 >
-                  <Badge className="bg-red-500/20 text-red-400 border-red-500/30 animate-pulse">
+                  <Badge className="bg-sunset-500/20 text-sunset-400 border-sunset-500/30 animate-pulse">
                     🔥 ÚLTIMAS 24H: 89 novas transformações
                   </Badge>
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                    ⭐ 4.9/5 • +1.200 vidas transformadas
+                  <Badge className="bg-wellness-500/20 text-wellness-400 border-wellness-500/30">
+                    ⭐ 4.9/5 • +5.000 vidas transformadas
                   </Badge>
                 </motion.div>
                 
                 <motion.h1 
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight"
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
                 >
-                  <span className="text-yellow-400">Comece agora.</span><br />
-                  <span className="bg-gradient-to-r from-primary to-health-purple bg-clip-text text-transparent">
+                  <span className="text-energy-400">Comece agora.</span><br />
+                  <span className="bg-gradient-to-r from-brand-500 to-mindful-500 bg-clip-text text-transparent">
                     Transforme sua vida
                   </span><br />
-                  <span className="text-2xl md:text-3xl lg:text-4xl text-netflix-text-muted">em apenas 30 dias</span>
+                  <span className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground">em apenas 30 dias</span>
                 </motion.h1>
                 
                 <motion.p 
-                  className="text-xl text-netflix-text-muted leading-relaxed max-w-2xl"
+                  className="text-xl text-muted-foreground leading-relaxed max-w-2xl"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.6 }}
                 >
-                  <strong className="text-white">Método exclusivo</strong> usado por mais de 1.200 pessoas que já 
+                  <strong className="text-foreground">Método exclusivo</strong> usado por mais de 5.000 pessoas que já 
                   perderam peso, ganharam energia e descobriram uma versão completamente nova de si mesmas.
                 </motion.p>
 
                 <motion.div 
-                  className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg p-4"
+                  className="bg-gradient-to-r from-ocean-500/10 to-mindful-500/10 border border-ocean-500/20 rounded-lg p-4"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.7 }}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <Crown className="w-5 h-5 text-yellow-400" />
-                    <span className="text-lg font-semibold text-white">ACESSO PREMIUM GRATUITO</span>
+                    <Crown className="w-5 h-5 text-energy-400" />
+                    <span className="text-lg font-semibold text-foreground">ACESSO PREMIUM GRATUITO</span>
                   </div>
-                  <ul className="text-sm text-netflix-text-muted space-y-1">
+                  <ul className="text-sm text-muted-foreground space-y-1">
                     <li>✅ 7 dias de acesso completo GRÁTIS</li>
                     <li>✅ Sistema de missões personalizado</li>
                     <li>✅ Acompanhamento 24/7 com IA</li>
@@ -399,7 +360,7 @@ const HomePage = () => {
                 <Link to={user ? "/dashboard" : "/auth"} className="flex-1 sm:flex-none">
                   <Button 
                     size="lg" 
-                    className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
+                    className="w-full sm:w-auto gradient-wellness hover:scale-105 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                   >
@@ -413,7 +374,7 @@ const HomePage = () => {
                   <Button 
                     variant="outline" 
                     size="lg" 
-                    className="w-full sm:w-auto border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 px-8 py-6 text-lg font-semibold"
+                    className="w-full sm:w-auto border-2 border-energy-400 text-energy-400 hover:bg-energy-400/10 px-8 py-6 text-lg font-semibold"
                   >
                     <Trophy className="mr-2 h-5 w-5" />
                     Ver Ranking de Sucessos
@@ -427,14 +388,14 @@ const HomePage = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
               >
-                <div className="flex items-center gap-4 text-sm text-netflix-text-muted">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center">
-                    <CheckCircle className="w-4 h-4 text-green-400 mr-1" />
-                    <span className="text-green-400 font-semibold">100% GRATUITO</span> por 7 dias
+                    <CheckCircle className="w-4 h-4 text-wellness-400 mr-1" />
+                    <span className="text-wellness-400 font-semibold">100% GRATUITO</span> por 7 dias
                   </div>
                   <div className="flex items-center">
-                    <Shield className="w-4 h-4 text-blue-400 mr-1" />
-                    <span className="text-blue-400 font-semibold">MÉTODO CIENTÍFICO</span>
+                    <Shield className="w-4 h-4 text-ocean-400 mr-1" />
+                    <span className="text-ocean-400 font-semibold">MÉTODO CIENTÍFICO</span>
                   </div>
                 </div>
                 
@@ -498,7 +459,7 @@ const HomePage = () => {
             </p>
           </motion.div>
           
-          <RealTimeStats />
+          <ImpactStats />
         </div>
       </section>
 

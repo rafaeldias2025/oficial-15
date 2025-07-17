@@ -358,7 +358,7 @@ const Auth = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="text-center"
+          className="text-center flex gap-4 justify-center"
         >
           <Button 
             onClick={() => navigate('/admin?tab=usuarios')} 
@@ -367,6 +367,15 @@ const Auth = () => {
           >
             <Shield className="mr-2 h-4 w-4" />
             Acesso Administrativo
+          </Button>
+          
+          <Button 
+            onClick={() => navigate('/create-admin')} 
+            variant="outline" 
+            className="border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-slate-900 shadow-lg hover:shadow-green-400/25 transition-all duration-300 font-semibold"
+          >
+            <User className="mr-2 h-4 w-4" />
+            Criar Admin
           </Button>
         </motion.div>
 

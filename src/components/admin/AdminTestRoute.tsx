@@ -7,43 +7,50 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Database, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { createDemoUsers, cleanDemoUsers } from '@/utils/createDemoUsers';
+import { AdminProtectedRoute } from './AdminProtectedRoute';
 import { EnhancedAdminDashboard } from './EnhancedAdminDashboard';
 
+// Componente principal AdminTestRoute
 export const AdminTestRoute: React.FC = () => {
-  const { user, session } = useAuth();
-  const { isAdmin, loading } = useAdminAuth();
+  return (
+    <AdminProtectedRoute>
+      <EnhancedAdminDashboard />
+    </AdminProtectedRoute>
+  );
+};
+
+// Bloco de ferramentas demo para ser usado dentro da aba de configurações do painel admin
+export const DemoUsersTools: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string; count?: number } | null>(null);
+  const [quantidade, setQuantidade] = useState(20);
   const { toast } = useToast();
 
   const handleCreateDemoUsers = async () => {
     setIsCreating(true);
     setResult(null);
-    
     try {
-      const result = await createDemoUsers();
+      const result = await createDemoUsers(quantidade);
       setResult({
         success: true,
-        message: `${result.count} usuários fictícios criados com sucesso!`,
+        message: `${result.count} usuários criados com sucesso!`,
         count: result.count
       });
-      
       toast({
         title: "✅ Usuários criados!",
-        description: `${result.count} usuários fictícios foram adicionados ao sistema`,
+        description: `${result.count} usuários foram adicionados ao sistema`,
         duration: 5000,
       });
     } catch (error) {
       console.error('Erro ao criar usuários:', error);
       setResult({
         success: false,
-        message: 'Erro ao criar usuários fictícios. Verifique o console para mais detalhes.',
+        message: 'Erro ao criar usuários. Verifique o console para mais detalhes.',
       });
-      
       toast({
         title: "❌ Erro",
-        description: "Falha ao criar usuários fictícios",
+        description: "Falha ao criar usuários",
         variant: "destructive",
         duration: 5000,
       });
@@ -55,14 +62,12 @@ export const AdminTestRoute: React.FC = () => {
   const handleCleanDemoUsers = async () => {
     setIsCleaning(true);
     setResult(null);
-    
     try {
       await cleanDemoUsers();
       setResult({
         success: true,
         message: 'Usuários fictícios removidos com sucesso!',
       });
-      
       toast({
         title: "🧹 Limpeza concluída",
         description: "Todos os usuários fictícios foram removidos",
@@ -74,7 +79,6 @@ export const AdminTestRoute: React.FC = () => {
         success: false,
         message: 'Erro ao remover usuários fictícios. Verifique o console para mais detalhes.',
       });
-      
       toast({
         title: "❌ Erro",
         description: "Falha ao remover usuários fictícios",
@@ -86,151 +90,41 @@ export const AdminTestRoute: React.FC = () => {
     }
   };
 
-  console.log('🧪 AdminTestRoute - user:', user?.id);
-  console.log('🧪 AdminTestRoute - session:', !!session);
-  console.log('🧪 AdminTestRoute - isAdmin:', isAdmin);
-  console.log('🧪 AdminTestRoute - loading:', loading);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-netflix-dark flex items-center justify-center">
-        <Card className="w-96 bg-netflix-card border-netflix-border">
-          <CardHeader>
-            <CardTitle className="text-netflix-text">Carregando...</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-instituto-orange mb-4"></div>
-            <p className="text-netflix-text">Verificando permissões...</p>
-            <div className="mt-4 text-sm text-netflix-text-muted">
-              <p>User: {user?.id || 'None'}</p>
-              <p>Session: {session ? 'Active' : 'None'}</p>
-              <p>IsAdmin: {String(isAdmin)}</p>
-              <p>Loading: {String(loading)}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!user || !session) {
-    return (
-      <div className="min-h-screen bg-netflix-dark flex items-center justify-center">
-        <Card className="w-96 bg-netflix-card border-netflix-border">
-          <CardHeader>
-            <CardTitle className="text-netflix-text">Não Autenticado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-netflix-text-muted">
-              Você precisa fazer login para acessar esta página.
-            </p>
-            <Button 
-              onClick={() => window.location.href = '/auth'} 
-              className="mt-4"
-            >
-              Fazer Login
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (isAdmin !== true) {
-    return (
-      <div className="min-h-screen bg-netflix-dark flex items-center justify-center">
-        <Card className="w-96 bg-netflix-card border-netflix-border">
-          <CardHeader>
-            <CardTitle className="text-netflix-text">Acesso Negado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-netflix-text-muted">
-              Você não tem permissão para acessar o painel administrativo.
-            </p>
-            <div className="mt-4 text-sm text-netflix-text-muted">
-              <p>User ID: {user?.id}</p>
-              <p>Email: {user?.email}</p>
-              <p>Session: {session ? 'Active' : 'None'}</p>
-              <p>IsAdmin: {String(isAdmin)}</p>
-              <p>Loading: {String(loading)}</p>
-            </div>
-            <Button 
-              onClick={() => window.location.href = '/auth'} 
-              className="mt-4"
-            >
-              Voltar ao Login
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Ferramentas de Demonstração */}
-      <Card className="border-instituto-orange/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="w-5 h-5" />
-            Ferramentas de Demonstração
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Criar Usuários Fictícios
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Gera 20 usuários com pontuações, missões e dados realistas para demonstração do ranking.
-              </p>
-              <Button 
-                onClick={handleCreateDemoUsers}
-                disabled={isCreating}
-                className="w-full"
-              >
-                {isCreating ? 'Criando...' : 'Criar 20 Usuários Demo'}
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Trash2 className="w-4 h-4" />
-                Limpar Usuários Fictícios
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Remove todos os usuários fictícios criados para demonstração.
-              </p>
-              <Button 
-                onClick={handleCleanDemoUsers}
-                disabled={isCleaning}
-                variant="destructive"
-                className="w-full"
-              >
-                {isCleaning ? 'Limpando...' : 'Remover Usuários Demo'}
-              </Button>
-            </div>
+    <Card className="w-full max-w-xl bg-netflix-card border-netflix-border my-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-netflix-text">
+          <Users className="w-5 h-5" /> Ferramenta de Usuários Demo
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <label htmlFor="quantidade-demo-users" className="text-netflix-text-muted">Quantidade:</label>
+            <input
+              id="quantidade-demo-users"
+              type="number"
+              min={1}
+              max={100}
+              value={quantidade}
+              onChange={e => setQuantidade(Number(e.target.value))}
+              className="w-20 px-2 py-1 rounded border border-netflix-border bg-netflix-dark text-netflix-text"
+            />
+            <Button onClick={handleCreateDemoUsers} disabled={isCreating} className="ml-2">
+              {isCreating ? 'Criando...' : 'Criar Usuários'}
+            </Button>
+            <Button onClick={handleCleanDemoUsers} disabled={isCleaning} variant="destructive" className="ml-2">
+              {isCleaning ? 'Limpando...' : 'Limpar Usuários'}
+            </Button>
           </div>
-
           {result && (
-            <Alert className={result.success ? 'border-green-500' : 'border-red-500'}>
-              <div className="flex items-center gap-2">
-                {result.success ? (
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                ) : (
-                  <AlertCircle className="w-4 h-4 text-red-500" />
-                )}
-                <AlertDescription>{result.message}</AlertDescription>
-              </div>
+            <Alert variant={result.success ? 'default' : 'destructive'} className="mt-2">
+              {result.success ? <CheckCircle className="w-4 h-4 text-green-500" /> : <AlertCircle className="w-4 h-4 text-red-500" />}
+              <AlertDescription>{result.message}</AlertDescription>
             </Alert>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Dashboard Principal */}
-      <EnhancedAdminDashboard />
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
-}; 
+};
