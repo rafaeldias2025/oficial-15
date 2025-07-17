@@ -10,6 +10,12 @@ import {
   Smartphone,
   FileText,
   TrendingUp,
+  Scale,
+  Trophy,
+  Target,
+  Award,
+  User,
+  GraduationCap,
   LucideIcon,
 } from 'lucide-react';
 
@@ -41,16 +47,60 @@ export const mainMenuItems: MenuItem[] = [
         path: '/health/metrics',
       },
       {
-        id: 'history',
-        label: 'Histórico',
-        icon: Calendar,
-        path: '/health/history',
+        id: 'physical-data',
+        label: 'Dados Físicos',
+        icon: Scale,
+        path: '/health/physical-data',
       },
       {
-        id: 'analysis',
-        label: 'Análises',
-        icon: BarChart3,
-        path: '/health/analysis',
+        id: 'progress',
+        label: 'Meu Progresso',
+        icon: TrendingUp,
+        path: '/health/progress',
+      },
+    ],
+  },
+  {
+    id: 'courses',
+    label: 'Cursos',
+    icon: GraduationCap,
+    subItems: [
+      {
+        id: 'library',
+        label: 'Biblioteca',
+        icon: FileText,
+        path: '/courses/library',
+      },
+      {
+        id: 'paid',
+        label: 'Cursos Pagos',
+        icon: Award,
+        path: '/courses/paid',
+      },
+    ],
+  },
+  {
+    id: 'activities',
+    label: 'Atividades',
+    icon: Target,
+    subItems: [
+      {
+        id: 'missions',
+        label: 'Missões Diárias',
+        icon: Calendar,
+        path: '/activities/missions',
+      },
+      {
+        id: 'challenges',
+        label: 'Desafios',
+        icon: Trophy,
+        path: '/activities/challenges',
+      },
+      {
+        id: 'goals',
+        label: 'Metas',
+        icon: Target,
+        path: '/activities/goals',
       },
     ],
   },
@@ -67,16 +117,15 @@ export const mainMenuItems: MenuItem[] = [
     icon: FileText,
     path: '/reports',
   },
-  {
-    id: 'goals',
-    label: 'Metas',
-    icon: TrendingUp,
-    path: '/goals',
-    badge: 'New',
-  },
 ];
 
 export const bottomMenuItems: MenuItem[] = [
+  {
+    id: 'profile',
+    label: 'Perfil',
+    icon: User,
+    path: '/profile',
+  },
   {
     id: 'settings',
     label: 'Configurações',
