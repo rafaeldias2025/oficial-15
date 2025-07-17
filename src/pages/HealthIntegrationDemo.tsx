@@ -162,7 +162,7 @@ export default function HealthIntegrationDemo() {
         <Card className="mt-8 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
           <CardHeader className="text-center">
             <CardTitle className="text-green-800">
-              Comece Agora a Sincronizar Seus Dados
+              Jornada Radical
             </CardTitle>
             <CardDescription className="text-green-600">
               Configure sua integração acima e tenha todos os seus dados de saúde em um só lugar

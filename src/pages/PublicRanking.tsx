@@ -94,7 +94,7 @@ const PublicRankingPage = () => {
                 </p>
                 <Link to="/auth">
                   <Button className="w-full bg-instituto-orange hover:bg-instituto-orange/90">
-                    Começar Agora
+                    Jornada Radical
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 </Link>

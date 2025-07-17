@@ -315,7 +315,7 @@ const HomePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
                 >
-                  <span className="text-energy-400">Comece agora.</span><br />
+                  <span className="text-energy-400">Jornada Radical.</span><br />
                   <span className="bg-gradient-to-r from-brand-500 to-mindful-500 bg-clip-text text-transparent">
                     Transforme sua vida
                   </span><br />

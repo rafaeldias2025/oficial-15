@@ -6,11 +6,19 @@
   --primary-hover: #1d4ed8;  /* Azul hover */
   --primary-light: #dbeafe; /* Azul claro */
   --primary-dark: #1e40af;  /* Azul escuro */
+  --primary-foreground: #ffffff;
   
   /* === CORES SECUNDÁRIAS === */
   --secondary: #10b981;      /* Verde */
   --secondary-hover: #059669;
   --secondary-light: #d1fae5;
+  --secondary-foreground: #ffffff;
+  
+  /* === CORES DE ACENTO === */
+  --accent: #f59e0b;         /* Laranja vibrante */
+  --accent-hover: #d97706;
+  --accent-light: #fed7aa;
+  --accent-foreground: #ffffff;
   
   /* === CORES DE FUNDO === */
   --bg-primary: #ffffff;     /* Branco */
@@ -61,6 +69,7 @@
   
   /* === BORDAS E SOMBRAS === */
   --border: #e2e8f0;
+  --border-primary: #e2e8f0;
   --border-light: #f1f5f9;
   --border-medium: #cbd5e1;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -87,6 +96,7 @@
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
+  --radius-full: 9999px;
 }
 
 /* === CLASSES UTILITÁRIAS === */

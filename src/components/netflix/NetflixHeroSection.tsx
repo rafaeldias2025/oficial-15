@@ -62,7 +62,7 @@ export const NetflixHeroSection: React.FC<NetflixHeroSectionProps> = ({
           <div className="flex gap-4">
             <Button className="bg-instituto-orange hover:bg-instituto-orange-hover text-white px-8 py-3 text-lg font-semibold">
               <Play className="h-5 w-5 mr-2" />
-              {featuredCourse.status === 'in-progress' ? 'Continuar' : 'Começar Agora'}
+              {featuredCourse.status === 'in-progress' ? 'Continuar' : 'Jornada Radical'}
             </Button>
             <Button variant="outline" className="border-netflix-text-muted text-netflix-text hover:bg-netflix-hover px-8 py-3 text-lg">
               <Info className="h-5 w-5 mr-2" />

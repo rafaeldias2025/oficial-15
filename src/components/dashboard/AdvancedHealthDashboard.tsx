@@ -8,11 +8,11 @@ import {
   Calendar, Target, User, BarChart3, Clock, Maximize2
 } from 'lucide-react';
 import { EnhancedDashboard } from './EnhancedDashboard';
-import { EnhancedSilhouette3D } from '../visual/EnhancedSilhouette3D';
 import { useProgressData } from '@/hooks/useProgressData';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import ModernHealthDashboard from './ModernHealthDashboard';
 
 // Componente de comparação rápida memoizado
 const QuickComparison: React.FC<{ current: any; previous: any }> = React.memo(({ current, previous }) => {
@@ -350,15 +350,9 @@ export const AdvancedHealthDashboard: React.FC = () => {
       )}
 
       {activeView === 'body' && silhouetteCurrentData && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <EnhancedSilhouette3D 
-              currentData={silhouetteCurrentData}
-              previousData={silhouettePreviousData}
-            />
-          </div>
-          <div className="space-y-4">
-            <HealthInsights data={pesagens} />
+        <div className="grid grid-cols-1 gap-6">
+          <div className="w-full">
+            <ModernHealthDashboard />
           </div>
         </div>
       )}
