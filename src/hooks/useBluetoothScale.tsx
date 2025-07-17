@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 // Wrapper do toast para compatibilidade
 const useToast = () => ({
-  toast: (options: any) => {
+  toast: (options: { variant?: string; title: string; description?: string; duration?: number }) => {
     if (options.variant === 'destructive') {
       toast.error(options.title, { description: options.description });
     } else {
@@ -129,8 +129,8 @@ export const useBluetoothScale = () => {
     bodyWater = Math.max(35, Math.min(75, bodyWater));
     muscleMass = Math.max(weight * 0.25, Math.min(weight * 0.6, muscleMass));
     
-    visceralFat = Math.max(1, Math.min(30, (bodyFat / 10) + (age / 20)));
-    bodyAge = Math.max(18, Math.min(80, age + (bodyFat - 15) * 0.5));
+    const visceralFat = Math.max(1, Math.min(30, (bodyFat / 10) + (age / 20)));
+    const bodyAge = Math.max(18, Math.min(80, age + (bodyFat - 15) * 0.5));
 
     // Determinar tipo corporal baseado na composição
     let bodyType = 'Normal';

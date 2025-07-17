@@ -10,12 +10,13 @@ import {
   Smartphone,
   FileText,
   TrendingUp,
+  LucideIcon,
 } from 'lucide-react';
 
 export interface MenuItem {
   id: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   path?: string;
   badge?: string | number;
   subItems?: MenuItem[];
